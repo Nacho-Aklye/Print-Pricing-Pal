@@ -34,8 +34,8 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
 
   const handleAdd = () => {
     if (!newForm.name || !newForm.costPerKg) return;
-    onAdd({ name: newForm.name, brand: newForm.brand || "—", costPerKg: parseFloat(newForm.costPerKg) || 0 });
-    setNewForm({ name: "", brand: "", costPerKg: "" });
+    onAdd({ name: newForm.name, brand: newForm.brand || "—", details: newForm.details, costPerKg: parseFloat(newForm.costPerKg) || 0 });
+    setNewForm({ name: "", brand: "", details: "", costPerKg: "" });
     setShowAdd(false);
   };
 
