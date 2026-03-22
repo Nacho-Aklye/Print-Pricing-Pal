@@ -63,7 +63,7 @@ export const MaterialSelector = ({ entries, materials, onChange }: Props) => {
               >
                 {materials.map((m) => (
                   <option key={m.id} value={m.id} disabled={entries.some((e, i) => i !== index && e.materialId === m.id)}>
-                    {m.name} — {m.brand}
+                    {m.name} — {m.brand}{m.details ? ` (${m.details})` : ""}
                   </option>
                 ))}
               </select>

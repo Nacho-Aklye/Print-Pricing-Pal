@@ -81,6 +81,7 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
               <div className="rounded-lg border bg-card px-3 py-2.5 text-left">
                 <span className="block text-sm font-semibold leading-tight">{mat.name}</span>
                 <span className="block text-[10px] mt-0.5 text-muted-foreground">{mat.brand}</span>
+                {mat.details && <span className="block text-[10px] mt-0.5 text-muted-foreground/70 italic">{mat.details}</span>}
                 <span className="block text-[10px] mt-0.5 font-mono text-muted-foreground">{formatCLP(mat.costPerKg)}/kg</span>
               </div>
             )}
