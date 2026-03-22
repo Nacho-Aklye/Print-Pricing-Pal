@@ -2,6 +2,7 @@ export interface Material {
   id: string;
   name: string;
   brand: string;
+  details: string;
   costPerKg: number;
 }
 
@@ -32,16 +33,16 @@ export interface CostBreakdown {
 }
 
 export const DEFAULT_MATERIALS: Material[] = [
-  { id: "1", name: "PLA", brand: "eSUN", costPerKg: 12000 },
-  { id: "2", name: "PLA+", brand: "eSUN", costPerKg: 13000 },
-  { id: "3", name: "PLA+ HS", brand: "eSUN", costPerKg: 14000 },
-  { id: "4", name: "PLA Silk", brand: "eSUN", costPerKg: 18000 },
-  { id: "5", name: "PETG", brand: "eSUN", costPerKg: 15000 },
-  { id: "6", name: "PETG HS", brand: "eSUN", costPerKg: 16000 },
-  { id: "7", name: "PETG+ HS", brand: "eSUN", costPerKg: 17000 },
-  { id: "8", name: "ASA", brand: "eSUN", costPerKg: 16000 },
-  { id: "9", name: "ABS", brand: "eSUN", costPerKg: 14000 },
-  { id: "10", name: "TPU", brand: "eSUN", costPerKg: 25000 },
+  { id: "1", name: "PLA", brand: "eSUN", details: "", costPerKg: 12000 },
+  { id: "2", name: "PLA+", brand: "eSUN", details: "", costPerKg: 13000 },
+  { id: "3", name: "PLA+ HS", brand: "eSUN", details: "", costPerKg: 14000 },
+  { id: "4", name: "PLA Silk", brand: "eSUN", details: "Acabado metálico", costPerKg: 18000 },
+  { id: "5", name: "PETG", brand: "eSUN", details: "", costPerKg: 15000 },
+  { id: "6", name: "PETG HS", brand: "eSUN", details: "", costPerKg: 16000 },
+  { id: "7", name: "PETG+ HS", brand: "eSUN", details: "", costPerKg: 17000 },
+  { id: "8", name: "ASA", brand: "eSUN", details: "", costPerKg: 16000 },
+  { id: "9", name: "ABS", brand: "eSUN", details: "", costPerKg: 14000 },
+  { id: "10", name: "TPU", brand: "eSUN", details: "Flexible", costPerKg: 25000 },
 ];
 
 export const formatCLP = (value: number) =>

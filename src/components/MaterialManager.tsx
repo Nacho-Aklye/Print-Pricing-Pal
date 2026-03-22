@@ -13,12 +13,12 @@ interface Props {
 export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props) => {
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", brand: "", costPerKg: "" });
-  const [newForm, setNewForm] = useState({ name: "", brand: "", costPerKg: "" });
+  const [editForm, setEditForm] = useState({ name: "", brand: "", details: "", costPerKg: "" });
+  const [newForm, setNewForm] = useState({ name: "", brand: "", details: "", costPerKg: "" });
 
   const startEdit = (mat: Material) => {
     setEditingId(mat.id);
-    setEditForm({ name: mat.name, brand: mat.brand, costPerKg: String(mat.costPerKg) });
+    setEditForm({ name: mat.name, brand: mat.brand, details: mat.details, costPerKg: String(mat.costPerKg) });
   };
 
   const saveEdit = () => {
@@ -26,6 +26,7 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
     onUpdate(editingId, {
       name: editForm.name,
       brand: editForm.brand,
+      details: editForm.details,
       costPerKg: parseFloat(editForm.costPerKg) || 0,
     });
     setEditingId(null);
@@ -33,8 +34,8 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
 
   const handleAdd = () => {
     if (!newForm.name || !newForm.costPerKg) return;
-    onAdd({ name: newForm.name, brand: newForm.brand || "—", costPerKg: parseFloat(newForm.costPerKg) || 0 });
-    setNewForm({ name: "", brand: "", costPerKg: "" });
+    onAdd({ name: newForm.name, brand: newForm.brand || "—", details: newForm.details, costPerKg: parseFloat(newForm.costPerKg) || 0 });
+    setNewForm({ name: "", brand: "", details: "", costPerKg: "" });
     setShowAdd(false);
   };
 
@@ -49,9 +50,10 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
 
       {showAdd && (
         <div className="rounded-lg border bg-card p-3 mb-3 space-y-2 animate-fade-in-up">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <input placeholder="Nombre" value={newForm.name} onChange={(e) => setNewForm((p) => ({ ...p, name: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
             <input placeholder="Marca" value={newForm.brand} onChange={(e) => setNewForm((p) => ({ ...p, brand: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
+            <input placeholder="Detalles (color, acabado...)" value={newForm.details} onChange={(e) => setNewForm((p) => ({ ...p, details: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
             <input type="number" placeholder="CLP/kg" value={newForm.costPerKg} onChange={(e) => setNewForm((p) => ({ ...p, costPerKg: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-accent" />
           </div>
           <div className="flex justify-end gap-2">
@@ -68,6 +70,7 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
               <div className="rounded-lg border-2 border-accent bg-card p-2 space-y-1.5">
                 <input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-xs font-semibold focus:outline-none" />
                 <input value={editForm.brand} onChange={(e) => setEditForm((p) => ({ ...p, brand: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-[10px] focus:outline-none" />
+                <input placeholder="Detalles" value={editForm.details} onChange={(e) => setEditForm((p) => ({ ...p, details: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-[10px] focus:outline-none" />
                 <input type="number" value={editForm.costPerKg} onChange={(e) => setEditForm((p) => ({ ...p, costPerKg: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono focus:outline-none" />
                 <div className="flex gap-1 justify-end">
                   <button onClick={() => setEditingId(null)} className="p-0.5 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>
@@ -78,6 +81,7 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
               <div className="rounded-lg border bg-card px-3 py-2.5 text-left">
                 <span className="block text-sm font-semibold leading-tight">{mat.name}</span>
                 <span className="block text-[10px] mt-0.5 text-muted-foreground">{mat.brand}</span>
+                {mat.details && <span className="block text-[10px] mt-0.5 text-muted-foreground/70 italic">{mat.details}</span>}
                 <span className="block text-[10px] mt-0.5 font-mono text-muted-foreground">{formatCLP(mat.costPerKg)}/kg</span>
               </div>
             )}
