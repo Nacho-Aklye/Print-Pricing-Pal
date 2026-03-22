@@ -66,7 +66,7 @@ export function useSettings() {
   }, [settings]);
 
   const update = (key: string, value: number) => {
-    setSettings((prev: Record<string, number>) => ({ ...prev, [key]: value }));
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   return { settings, updateSetting: update };
