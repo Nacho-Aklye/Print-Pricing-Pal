@@ -26,6 +26,7 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
     onUpdate(editingId, {
       name: editForm.name,
       brand: editForm.brand,
+      details: editForm.details,
       costPerKg: parseFloat(editForm.costPerKg) || 0,
     });
     setEditingId(null);
