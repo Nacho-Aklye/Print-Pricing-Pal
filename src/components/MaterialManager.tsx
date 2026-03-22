@@ -18,7 +18,7 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
 
   const startEdit = (mat: Material) => {
     setEditingId(mat.id);
-    setEditForm({ name: mat.name, brand: mat.brand, costPerKg: String(mat.costPerKg) });
+    setEditForm({ name: mat.name, brand: mat.brand, details: mat.details, costPerKg: String(mat.costPerKg) });
   };
 
   const saveEdit = () => {
