@@ -2,6 +2,7 @@ export interface Material {
   id: string;
   name: string;
   brand: string;
+  details: string;
   costPerKg: number;
 }
 
