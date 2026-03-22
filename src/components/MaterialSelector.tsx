@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import type { Material, MaterialEntry } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
+import { MaterialColorDots } from "@/components/MaterialColorDots";
 
 interface Props {
   entries: MaterialEntry[];
@@ -55,6 +56,7 @@ export const MaterialSelector = ({ entries, materials, onChange }: Props) => {
         const materialCost = mat ? (entry.weightGrams / 1000) * mat.costPerKg : 0;
         return (
           <div key={index} className="rounded-lg border bg-card p-3 flex items-center gap-3 animate-fade-in-up">
+            {mat && <MaterialColorDots colors={mat.colors?.length ? mat.colors : ["#888"]} size="xs" />}
             <div className="flex-1 min-w-0">
               <select
                 value={entry.materialId}
