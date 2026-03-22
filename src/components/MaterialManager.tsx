@@ -50,9 +50,10 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
 
       {showAdd && (
         <div className="rounded-lg border bg-card p-3 mb-3 space-y-2 animate-fade-in-up">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <input placeholder="Nombre" value={newForm.name} onChange={(e) => setNewForm((p) => ({ ...p, name: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
             <input placeholder="Marca" value={newForm.brand} onChange={(e) => setNewForm((p) => ({ ...p, brand: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
+            <input placeholder="Detalles (color, acabado...)" value={newForm.details} onChange={(e) => setNewForm((p) => ({ ...p, details: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
             <input type="number" placeholder="CLP/kg" value={newForm.costPerKg} onChange={(e) => setNewForm((p) => ({ ...p, costPerKg: e.target.value }))} className="rounded-md border bg-background px-2 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-accent" />
           </div>
           <div className="flex justify-end gap-2">
