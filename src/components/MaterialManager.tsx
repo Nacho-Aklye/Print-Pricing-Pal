@@ -70,6 +70,7 @@ export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props)
               <div className="rounded-lg border-2 border-accent bg-card p-2 space-y-1.5">
                 <input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-xs font-semibold focus:outline-none" />
                 <input value={editForm.brand} onChange={(e) => setEditForm((p) => ({ ...p, brand: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-[10px] focus:outline-none" />
+                <input placeholder="Detalles" value={editForm.details} onChange={(e) => setEditForm((p) => ({ ...p, details: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-[10px] focus:outline-none" />
                 <input type="number" value={editForm.costPerKg} onChange={(e) => setEditForm((p) => ({ ...p, costPerKg: e.target.value }))} className="w-full rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono focus:outline-none" />
                 <div className="flex gap-1 justify-end">
                   <button onClick={() => setEditingId(null)} className="p-0.5 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>
