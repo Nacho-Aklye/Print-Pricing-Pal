@@ -13,8 +13,8 @@ interface Props {
 export const MaterialManager = ({ materials, onAdd, onUpdate, onDelete }: Props) => {
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", brand: "", costPerKg: "" });
-  const [newForm, setNewForm] = useState({ name: "", brand: "", costPerKg: "" });
+  const [editForm, setEditForm] = useState({ name: "", brand: "", details: "", costPerKg: "" });
+  const [newForm, setNewForm] = useState({ name: "", brand: "", details: "", costPerKg: "" });
 
   const startEdit = (mat: Material) => {
     setEditingId(mat.id);
