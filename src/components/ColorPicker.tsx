@@ -79,7 +79,7 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
                 <>
                   {/* Backdrop */}
                   <div className="fixed inset-0 z-40" onClick={() => setShowPicker(null)} />
-                  <div className="absolute top-8 left-0 z-50 rounded-lg border bg-card p-2.5 shadow-lg animate-fade-in-up min-w-[220px]">
+                  <div className="absolute top-8 left-0 z-[100] rounded-lg border bg-card p-2.5 shadow-xl animate-fade-in-up min-w-[220px]" style={{ position: 'absolute' }}>
                     {/* Presets */}
                     <div className="grid grid-cols-5 gap-1.5 mb-2">
                       {PRESET_COLORS.map((preset) => (
