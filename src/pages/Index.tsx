@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import { Printer, Zap, Clock, Calculator, TrendingUp, Info } from "lucide-react";
-import { useMaterials, useRecipes, useSettings } from "@/lib/hooks";
-import type { MaterialEntry, Recipe, CostBreakdown } from "@/lib/types";
+import { Printer, Zap, Clock, Calculator, TrendingUp, Info, ShoppingBag, Save } from "lucide-react";
+import { useMaterials, useProjects, useSettings } from "@/lib/hooks";
+import type { MaterialEntry, CostBreakdown } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 import { MaterialSelector } from "@/components/MaterialSelector";
-import { RecipeBook } from "@/components/RecipeBook";
 
 const MARGIN_TIPS = [
   { range: "20–30%", label: "Básico", desc: "Cubre desgaste y algo de ganancia. Para amigos/familia." },
@@ -15,13 +14,18 @@ const MARGIN_TIPS = [
 
 const Index = () => {
   const { materials } = useMaterials();
-  const { recipes, addRecipe, deleteRecipe } = useRecipes();
+  const { addProject } = useProjects();
   const { settings, updateSetting } = useSettings();
 
   const [entries, setEntries] = useState<MaterialEntry[]>([]);
   const [printHours, setPrintHours] = useState("");
   const [printMinutes, setPrintMinutes] = useState("");
+  const [modelCost, setModelCost] = useState("");
+  const [modelSource, setModelSource] = useState("");
   const [showMarginTips, setShowMarginTips] = useState(false);
+  const [showSave, setShowSave] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [saveNotes, setSaveNotes] = useState("");
 
   const costs: CostBreakdown = useMemo(() => {
     const hours = (parseFloat(printHours) || 0) + (parseFloat(printMinutes) || 0) / 60;
@@ -34,18 +38,30 @@ const Index = () => {
     const totalMaterial = materialCosts.reduce((s, c) => s + c.cost, 0);
     const electricity = (settings.printerWatts / 1000) * hours * settings.electricityCostKwh;
     const labor = hours * settings.hourlyRate;
-    const subtotal = totalMaterial + electricity + labor;
+    const mc = parseFloat(modelCost) || 0;
+    const subtotal = totalMaterial + electricity + labor + mc;
     const margin = subtotal * (settings.marginPercent / 100);
     const total = subtotal + margin;
-    return { materialCosts, totalMaterial, electricity, labor, subtotal, margin, marginPercent: settings.marginPercent, total };
-  }, [entries, printHours, printMinutes, materials, settings]);
+    return { materialCosts, totalMaterial, electricity, labor, modelCost: mc, subtotal, margin, marginPercent: settings.marginPercent, total };
+  }, [entries, printHours, printMinutes, modelCost, materials, settings]);
 
   const hasInput = entries.some((e) => e.weightGrams > 0) || parseFloat(printHours) > 0 || parseFloat(printMinutes) > 0;
+  const canSave = entries.some((e) => e.weightGrams > 0);
 
-  const loadRecipe = (recipe: Recipe) => {
-    setEntries(recipe.materials);
-    setPrintHours(recipe.printHours ? String(recipe.printHours) : "");
-    setPrintMinutes(recipe.printMinutes ? String(recipe.printMinutes) : "");
+  const handleSave = () => {
+    if (!saveName.trim()) return;
+    addProject({
+      name: saveName,
+      materials: entries.filter((e) => e.weightGrams > 0),
+      printHours: parseFloat(printHours) || 0,
+      printMinutes: parseFloat(printMinutes) || 0,
+      modelCost: parseFloat(modelCost) || 0,
+      modelSource,
+      notes: saveNotes,
+    });
+    setSaveName("");
+    setSaveNotes("");
+    setShowSave(false);
   };
 
   return (
@@ -63,23 +79,42 @@ const Index = () => {
             </div>
           </div>
           <p className="text-muted-foreground text-sm">
-            Costea impresiones multicolor de forma rápida. Guarda recetas para trabajos recurrentes.
+            Costea impresiones multicolor de forma rápida.
           </p>
         </div>
 
-        {/* Recipe Book */}
-        <div className="animate-fade-in-up" style={{ animationDelay: "60ms" }}>
-          <RecipeBook
-            recipes={recipes}
-            materials={materials}
-            onDelete={deleteRecipe}
-            onLoad={loadRecipe}
-            onSave={addRecipe}
-            currentEntries={entries}
-            currentHours={printHours}
-            currentMinutes={printMinutes}
-          />
-        </div>
+        {/* Save as project */}
+        {canSave && (
+          <div className="mb-6 animate-fade-in-up" style={{ animationDelay: "60ms" }}>
+            <button
+              onClick={() => setShowSave(!showSave)}
+              className="flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent/80 transition-colors active:scale-[0.97]"
+            >
+              <Save className="h-3.5 w-3.5" /> Guardar como proyecto
+            </button>
+            {showSave && (
+              <div className="rounded-lg border bg-card p-3 mt-2 space-y-2 animate-fade-in-up">
+                <input
+                  placeholder="Nombre del proyecto (ej: Benchy bicolor)"
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  className="w-full rounded-md border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+                <textarea
+                  placeholder="Notas (opcional)"
+                  value={saveNotes}
+                  onChange={(e) => setSaveNotes(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-md border bg-background px-2 py-1.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowSave(false)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1">Cancelar</button>
+                  <button onClick={handleSave} className="text-xs font-medium bg-accent text-accent-foreground rounded-md px-3 py-1 hover:bg-accent/90 active:scale-[0.97]">Guardar</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Material selector */}
         <section className="mb-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
@@ -99,6 +134,26 @@ const Index = () => {
                 <span className="text-xs text-muted-foreground">min</span>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Model cost */}
+        <section className="mb-6 animate-fade-in-up" style={{ animationDelay: "160ms" }}>
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">Modelo 3D</label>
+          <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+            <div className="flex items-center gap-3">
+              <ShoppingBag className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm text-muted-foreground min-w-[80px]">Costo</span>
+              <input type="number" min="0" placeholder="0" value={modelCost} onChange={(e) => setModelCost(e.target.value)} className="w-full bg-transparent font-mono text-right text-lg focus:outline-none" />
+              <span className="text-xs text-muted-foreground shrink-0">CLP</span>
+            </div>
+            <div className="border-t" />
+            <input
+              placeholder="Fuente (ej: Thingiverse, diseño propio, Cults3D)"
+              value={modelSource}
+              onChange={(e) => setModelSource(e.target.value)}
+              className="w-full bg-transparent text-sm text-muted-foreground focus:outline-none placeholder:text-muted-foreground/50"
+            />
           </div>
         </section>
 
@@ -169,6 +224,7 @@ const Index = () => {
                 {costs.materialCosts.length > 1 && <CostLine label="Subtotal materiales" value={costs.totalMaterial} bold />}
                 <CostLine label="Electricidad" value={costs.electricity} />
                 <CostLine label="Mano de obra" value={costs.labor} />
+                {costs.modelCost > 0 && <CostLine label="Modelo 3D" value={costs.modelCost} />}
                 <div className="border-t my-2" />
                 <CostLine label="Costo base" value={costs.subtotal} />
                 <CostLine label={`Margen (${costs.marginPercent}%)`} value={costs.margin} accent />

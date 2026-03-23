@@ -12,21 +12,27 @@ export interface MaterialEntry {
   weightGrams: number;
 }
 
-export interface Recipe {
+export interface Project {
   id: string;
   name: string;
   materials: MaterialEntry[];
   printHours: number;
   printMinutes: number;
   notes: string;
+  modelCost: number; // cost if model was purchased
+  modelSource: string; // where the model came from
   createdAt: number;
 }
+
+/** @deprecated Use Project instead */
+export type Recipe = Project;
 
 export interface CostBreakdown {
   materialCosts: { name: string; cost: number }[];
   totalMaterial: number;
   electricity: number;
   labor: number;
+  modelCost: number;
   subtotal: number;
   margin: number;
   marginPercent: number;
@@ -55,7 +61,6 @@ export function groupMaterialsByType(materials: Material[]): Record<string, Mate
   const sorted = [...materials].sort((a, b) => a.name.localeCompare(b.name, "es"));
 
   for (const mat of sorted) {
-    // Extract base type: first word (e.g. PLA, PETG, ASA, ABS, TPU)
     const base = mat.name.split(/[\s+]/)[0].toUpperCase();
     if (!groups[base]) groups[base] = [];
     groups[base].push(mat);
