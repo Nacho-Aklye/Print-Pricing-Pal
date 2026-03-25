@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Material, Project } from "./types";
 import { DEFAULT_MATERIALS } from "./types";
 
-const DATA_VERSION = 2;
+const DATA_VERSION = 3;
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -26,9 +26,21 @@ function migrateData() {
         ...r,
         modelCost: r.modelCost ?? 0,
         modelSource: r.modelSource ?? "",
+        photos: r.photos ?? [],
       }));
       localStorage.setItem("calc3d_projects", JSON.stringify(migrated));
-      // Keep old data as backup
+    }
+  }
+
+  // Add photos field to existing projects
+  if (version < 3) {
+    const existing = load<any[]>("calc3d_projects", []);
+    if (existing.length > 0) {
+      const migrated = existing.map((p) => ({
+        ...p,
+        photos: p.photos ?? [],
+      }));
+      localStorage.setItem("calc3d_projects", JSON.stringify(migrated));
     }
   }
 
