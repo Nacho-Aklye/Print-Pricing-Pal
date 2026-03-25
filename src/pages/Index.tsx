@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Printer, Zap, Clock, Calculator, TrendingUp, Info, ShoppingBag, Save } from "lucide-react";
 import { useMaterials, useProjects, useSettings } from "@/lib/hooks";
 import type { MaterialEntry, CostBreakdown } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 import { MaterialSelector } from "@/components/MaterialSelector";
+import { useSearchParams } from "react-router-dom";
 
 const MARGIN_TIPS = [
   { range: "20–30%", label: "Básico", desc: "Cubre desgaste y algo de ganancia. Para amigos/familia." },
@@ -14,8 +15,9 @@ const MARGIN_TIPS = [
 
 const Index = () => {
   const { materials } = useMaterials();
-  const { addProject } = useProjects();
+  const { projects, addProject } = useProjects();
   const { settings, updateSetting } = useSettings();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [entries, setEntries] = useState<MaterialEntry[]>([]);
   const [printHours, setPrintHours] = useState("");
@@ -26,6 +28,25 @@ const Index = () => {
   const [showSave, setShowSave] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveNotes, setSaveNotes] = useState("");
+  const [loadedProjectName, setLoadedProjectName] = useState("");
+
+  // Load project from URL param
+  useEffect(() => {
+    const projectId = searchParams.get("proyecto");
+    if (!projectId) return;
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    setEntries(project.materials);
+    setPrintHours(project.printHours ? String(project.printHours) : "");
+    setPrintMinutes(project.printMinutes ? String(project.printMinutes) : "");
+    setModelCost(project.modelCost ? String(project.modelCost) : "");
+    setModelSource(project.modelSource || "");
+    setSaveName(project.name);
+    setSaveNotes(project.notes || "");
+    setLoadedProjectName(project.name);
+    // Clear the param so it doesn't re-load on re-render
+    setSearchParams({}, { replace: true });
+  }, [searchParams]);
 
   const costs: CostBreakdown = useMemo(() => {
     const hours = (parseFloat(printHours) || 0) + (parseFloat(printMinutes) || 0) / 60;
@@ -58,10 +79,12 @@ const Index = () => {
       modelCost: parseFloat(modelCost) || 0,
       modelSource,
       notes: saveNotes,
+      photos: [],
     });
     setSaveName("");
     setSaveNotes("");
     setShowSave(false);
+    setLoadedProjectName("");
   };
 
   return (
@@ -82,6 +105,13 @@ const Index = () => {
             Costea impresiones multicolor de forma rápida.
           </p>
         </div>
+
+        {/* Loaded project indicator */}
+        {loadedProjectName && (
+          <div className="mb-4 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 animate-fade-in-up">
+            <span className="text-xs text-accent font-medium">📂 Proyecto cargado: {loadedProjectName}</span>
+          </div>
+        )}
 
         {/* Save as project */}
         {canSave && (

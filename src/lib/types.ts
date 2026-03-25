@@ -21,6 +21,7 @@ export interface Project {
   notes: string;
   modelCost: number; // cost if model was purchased
   modelSource: string; // where the model came from
+  photos: string[]; // base64 data URLs
   createdAt: number;
 }
 

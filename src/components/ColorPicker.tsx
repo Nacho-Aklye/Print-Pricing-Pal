@@ -22,38 +22,35 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
   const pickerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [pickerPos, setPickerPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [customHex, setCustomHex] = useState("");
 
   const updatePosition = useCallback(() => {
     if (showPicker === null) return;
     const btn = buttonRefs.current[showPicker];
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
-    const pickerWidth = 230;
+    const pickerWidth = 260;
+    const pickerHeight = 340;
     let left = rect.left;
-    // Keep within viewport
+    let top = rect.bottom + 6;
     if (left + pickerWidth > window.innerWidth - 8) {
       left = window.innerWidth - pickerWidth - 8;
     }
-    setPickerPos({ top: rect.bottom + 4, left });
+    if (left < 8) left = 8;
+    // If it would go below viewport, show above
+    if (top + pickerHeight > window.innerHeight - 8) {
+      top = rect.top - pickerHeight - 6;
+    }
+    setPickerPos({ top, left });
   }, [showPicker]);
 
   useEffect(() => {
     updatePosition();
+    if (showPicker !== null) {
+      setCustomHex(colors[showPicker] || "");
+    }
   }, [showPicker, updatePosition]);
 
-  // Close picker on outside click
-  useEffect(() => {
-    if (showPicker === null) return;
-    const handler = (e: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setShowPicker(null);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showPicker]);
-
-  // Update position on scroll/resize
   useEffect(() => {
     if (showPicker === null) return;
     window.addEventListener("scroll", updatePosition, true);
@@ -72,6 +69,7 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
 
   const updateColor = (index: number, color: string) => {
     onChange(colors.map((c, i) => (i === index ? color : c)));
+    setCustomHex(color);
   };
 
   const removeColor = (index: number) => {
@@ -81,7 +79,6 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
   };
 
   const isFavorite = (color: string) => favorites.includes(color.toLowerCase());
-
   const toggleFavorite = (color: string) => {
     const c = color.toLowerCase();
     if (isFavorite(c)) removeFavorite(c);
@@ -97,25 +94,26 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {colors.map((color, i) => (
-            <div key={i} className="relative">
-              <button
-                ref={(el) => { buttonRefs.current[i] = el; }}
-                onClick={() => setShowPicker(showPicker === i ? null : i)}
-                className="h-6 w-6 rounded-full border-2 border-border shadow-sm transition-transform hover:scale-110 active:scale-95"
-                style={{ backgroundColor: color }}
-                title={`Color ${i + 1}`}
-              />
-            </div>
+            <button
+              key={i}
+              ref={(el) => { buttonRefs.current[i] = el; }}
+              onClick={() => setShowPicker(showPicker === i ? null : i)}
+              className={`h-7 w-7 rounded-full border-2 shadow-sm transition-all hover:scale-110 active:scale-95 ${
+                showPicker === i ? "border-accent ring-2 ring-accent/30 scale-110" : "border-border"
+              }`}
+              style={{ backgroundColor: color }}
+              title={`Color ${i + 1}`}
+            />
           ))}
           {colors.length < max && (
             <button
               onClick={addColor}
-              className="h-6 w-6 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-accent hover:text-accent transition-colors active:scale-95"
+              className="h-7 w-7 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-accent hover:text-accent transition-colors active:scale-95"
               title="Agregar color"
             >
-              <Plus className="h-3 w-3" />
+              <Plus className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -124,21 +122,60 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
 
       {showPicker !== null && createPortal(
         <>
-          {/* Backdrop */}
           <div className="fixed inset-0 z-[200]" onClick={() => setShowPicker(null)} />
           <div
             ref={pickerRef}
-            className="fixed z-[201] rounded-lg border bg-card p-2.5 shadow-xl animate-fade-in-up min-w-[220px]"
-            style={{ top: pickerPos.top, left: pickerPos.left }}
+            className="fixed z-[201] rounded-xl border bg-card p-3 shadow-2xl animate-fade-in-up"
+            style={{ top: pickerPos.top, left: pickerPos.left, width: 260 }}
           >
-            {/* Presets */}
-            <div className="grid grid-cols-5 gap-1.5 mb-2">
+            {/* Selected color preview */}
+            <div className="flex items-center gap-2 mb-3">
+              <div
+                className="h-10 w-10 rounded-lg border-2 border-border shadow-inner"
+                style={{ backgroundColor: colors[showPicker] }}
+              />
+              <div className="flex-1">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Color seleccionado</div>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={customHex}
+                    onChange={(e) => {
+                      setCustomHex(e.target.value);
+                      if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+                        updateColor(showPicker, e.target.value);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (/^#[0-9a-fA-F]{6}$/.test(customHex)) {
+                        updateColor(showPicker, customHex);
+                      } else {
+                        setCustomHex(colors[showPicker]);
+                      }
+                    }}
+                    className="flex-1 rounded-md border bg-background px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-accent"
+                    placeholder="#000000"
+                  />
+                  <button
+                    onClick={() => toggleFavorite(colors[showPicker])}
+                    className="p-1 text-muted-foreground hover:text-accent transition-colors"
+                    title={isFavorite(colors[showPicker]) ? "Quitar de favoritos" : "Guardar como favorito"}
+                  >
+                    {isFavorite(colors[showPicker]) ? <Star className="h-4 w-4 fill-accent text-accent" /> : <Star className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Preset grid */}
+            <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Colores</div>
+            <div className="grid grid-cols-10 gap-1 mb-2">
               {PRESET_COLORS.map((preset) => (
                 <button
                   key={preset}
                   onClick={() => { updateColor(showPicker, preset); setShowPicker(null); }}
-                  className={`h-7 w-7 rounded-full border-2 transition-transform hover:scale-110 active:scale-95 ${
-                    colors[showPicker] === preset ? "border-accent ring-2 ring-accent/30" : "border-border"
+                  className={`h-5.5 w-5.5 aspect-square rounded-full border transition-all hover:scale-125 active:scale-95 ${
+                    colors[showPicker] === preset ? "border-accent ring-2 ring-accent/40 scale-110" : "border-border/60"
                   }`}
                   style={{ backgroundColor: preset }}
                 />
@@ -148,14 +185,14 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
             {/* Favorites */}
             {favorites.length > 0 && (
               <div className="mb-2">
-                <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1 block">Favoritos</span>
+                <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Favoritos</div>
                 <div className="flex flex-wrap gap-1">
                   {favorites.map((fav) => (
                     <button
                       key={fav}
                       onClick={() => { updateColor(showPicker, fav); setShowPicker(null); }}
-                      className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 active:scale-95 ${
-                        colors[showPicker] === fav ? "border-accent ring-2 ring-accent/30" : "border-border"
+                      className={`h-5.5 w-5.5 aspect-square rounded-full border transition-all hover:scale-125 active:scale-95 ${
+                        colors[showPicker] === fav ? "border-accent ring-2 ring-accent/40 scale-110" : "border-border/60"
                       }`}
                       style={{ backgroundColor: fav }}
                     />
@@ -164,32 +201,40 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
               </div>
             )}
 
-            {/* Custom color */}
-            <div className="flex items-center gap-1.5">
-              <input
-                type="color"
-                value={colors[showPicker]}
-                onChange={(e) => updateColor(showPicker, e.target.value)}
-                className="h-7 w-7 rounded cursor-pointer border-0 p-0"
-              />
-              <input
-                type="text"
-                value={colors[showPicker]}
-                onChange={(e) => updateColor(showPicker, e.target.value)}
-                className="flex-1 rounded border bg-background px-1.5 py-1 text-[10px] font-mono focus:outline-none focus:ring-1 focus:ring-accent"
-              />
-              <button
-                onClick={() => toggleFavorite(colors[showPicker])}
-                className="text-muted-foreground hover:text-accent transition-colors"
-                title={isFavorite(colors[showPicker]) ? "Quitar de favoritos" : "Guardar como favorito"}
+            {/* Hue gradient slider */}
+            <div className="mb-3">
+              <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Tono personalizado</div>
+              <div className="relative h-6 rounded-full overflow-hidden cursor-pointer"
+                style={{ background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)" }}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = (e.clientX - rect.left) / rect.width;
+                  const hue = Math.round(x * 360);
+                  const hex = hslToHex(hue, 80, 50);
+                  updateColor(showPicker, hex);
+                  setShowPicker(null);
+                }}
               >
-                {isFavorite(colors[showPicker]) ? <Star className="h-3.5 w-3.5 fill-accent text-accent" /> : <StarOff className="h-3.5 w-3.5" />}
-              </button>
-              {colors.length > 1 && (
-                <button onClick={() => removeColor(showPicker)} className="text-muted-foreground hover:text-destructive transition-colors" title="Eliminar color">
-                  <X className="h-3.5 w-3.5" />
+                <div className="absolute inset-0 rounded-full border border-border/30" />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-1 border-t">
+              {colors.length > 1 ? (
+                <button
+                  onClick={() => removeColor(showPicker)}
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors py-1"
+                >
+                  <X className="h-3 w-3" /> Eliminar color
                 </button>
-              )}
+              ) : <span />}
+              <button
+                onClick={() => setShowPicker(null)}
+                className="text-[11px] font-medium text-accent hover:text-accent/80 transition-colors py-1"
+              >
+                Listo
+              </button>
             </div>
           </div>
         </>,
@@ -198,3 +243,15 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
     </div>
   );
 };
+
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
