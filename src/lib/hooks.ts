@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Material, Project } from "./types";
 import { DEFAULT_MATERIALS } from "./types";
 
-const DATA_VERSION = 3;
+const DATA_VERSION = 4;
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -41,6 +41,29 @@ function migrateData() {
         photos: p.photos ?? [],
       }));
       localStorage.setItem("calc3d_projects", JSON.stringify(migrated));
+    }
+  }
+
+  // Add spool weight tracking to materials + free/fixed fields to fabricated
+  if (version < 4) {
+    const mats = load<any[]>("calc3d_materials", []);
+    if (mats.length > 0) {
+      const migrated = mats.map((m) => ({
+        ...m,
+        spoolWeightG: m.spoolWeightG ?? 1000,
+        weightUsedG: m.weightUsedG ?? 0,
+      }));
+      localStorage.setItem("calc3d_materials", JSON.stringify(migrated));
+    }
+    const fab = load<any[]>("calc3d_fabricated", []);
+    if (fab.length > 0) {
+      const migrated = fab.map((f) => ({
+        ...f,
+        isFree: f.isFree ?? false,
+        useFixedPrice: f.useFixedPrice ?? false,
+        fixedPrice: f.fixedPrice ?? 0,
+      }));
+      localStorage.setItem("calc3d_fabricated", JSON.stringify(migrated));
     }
   }
 
