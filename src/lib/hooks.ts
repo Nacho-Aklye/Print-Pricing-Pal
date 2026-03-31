@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Material, Project } from "./types";
 import { DEFAULT_MATERIALS } from "./types";
 
-const DATA_VERSION = 3;
+const DATA_VERSION = 4;
 
 function load<T>(key: string, fallback: T): T {
   try {
