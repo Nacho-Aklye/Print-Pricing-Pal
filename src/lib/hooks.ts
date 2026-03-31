@@ -125,6 +125,34 @@ export function useSettings() {
   return { settings, updateSetting: update };
 }
 
+export function useFabricatedProjects() {
+  const [fabricated, setFabricated] = useState<import("./types").FabricatedProject[]>(() => load("calc3d_fabricated", []));
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_fabricated", JSON.stringify(fabricated));
+  }, [fabricated]);
+
+  const addFabricated = (entry: Omit<import("./types").FabricatedProject, "id">) => {
+    setFabricated((prev) => [...prev, { ...entry, id: Date.now().toString() }]);
+  };
+
+  const deleteFabricated = (id: string) => {
+    setFabricated((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  return { fabricated, addFabricated, deleteFabricated };
+}
+
+export function useInvestmentGoal() {
+  const [goal, setGoalState] = useState<number>(() => load("calc3d_goal", 0));
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_goal", JSON.stringify(goal));
+  }, [goal]);
+
+  return { goal, setGoal: setGoalState };
+}
+
 export function useFavoriteColors() {
   const [favorites, setFavorites] = useState<string[]>(() => load("calc3d_fav_colors", []));
 
