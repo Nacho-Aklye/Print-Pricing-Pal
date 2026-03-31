@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import Index from "./pages/Index.tsx";
 import Materials from "./pages/Materials.tsx";
 import Projects from "./pages/Projects.tsx";
+import Finances from "./pages/Finances.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
