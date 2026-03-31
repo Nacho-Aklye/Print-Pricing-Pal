@@ -44,6 +44,29 @@ function migrateData() {
     }
   }
 
+  // Add spool weight tracking to materials + free/fixed fields to fabricated
+  if (version < 4) {
+    const mats = load<any[]>("calc3d_materials", []);
+    if (mats.length > 0) {
+      const migrated = mats.map((m) => ({
+        ...m,
+        spoolWeightG: m.spoolWeightG ?? 1000,
+        weightUsedG: m.weightUsedG ?? 0,
+      }));
+      localStorage.setItem("calc3d_materials", JSON.stringify(migrated));
+    }
+    const fab = load<any[]>("calc3d_fabricated", []);
+    if (fab.length > 0) {
+      const migrated = fab.map((f) => ({
+        ...f,
+        isFree: f.isFree ?? false,
+        useFixedPrice: f.useFixedPrice ?? false,
+        fixedPrice: f.fixedPrice ?? 0,
+      }));
+      localStorage.setItem("calc3d_fabricated", JSON.stringify(migrated));
+    }
+  }
+
   localStorage.setItem("calc3d_version", JSON.stringify(DATA_VERSION));
 }
 
