@@ -36,6 +36,9 @@ export interface FabricatedProject {
   salePrice: number;
   cost: number;
   date: number;
+  isFree: boolean; // gift/sample vs paid
+  useFixedPrice: boolean; // true = custom price, false = calculated price
+  fixedPrice: number; // the custom sale price when useFixedPrice is true
 }
 
 export interface CostBreakdown {
