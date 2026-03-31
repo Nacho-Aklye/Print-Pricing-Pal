@@ -5,6 +5,8 @@ export interface Material {
   details: string;
   colors: string[]; // hex color values, 1-15 colors
   costPerKg: number;
+  spoolWeightG: number; // initial spool weight in grams (default 1000)
+  weightUsedG: number; // total weight used across all fabricated projects
 }
 
 export interface MaterialEntry {
