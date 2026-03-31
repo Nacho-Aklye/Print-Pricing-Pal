@@ -1,4 +1,4 @@
-import { Calculator, Palette, FolderOpen } from "lucide-react";
+import { Calculator, Palette, FolderOpen, BarChart3 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -6,6 +6,7 @@ const links = [
   { to: "/", icon: Calculator, label: "Calcular" },
   { to: "/materiales", icon: Palette, label: "Materiales" },
   { to: "/proyectos", icon: FolderOpen, label: "Proyectos" },
+  { to: "/finanzas", icon: BarChart3, label: "Finanzas" },
 ];
 
 export const BottomNav = () => (

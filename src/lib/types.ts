@@ -28,6 +28,14 @@ export interface Project {
 /** @deprecated Use Project instead */
 export type Recipe = Project;
 
+export interface FabricatedProject {
+  id: string;
+  projectId: string;
+  salePrice: number;
+  cost: number;
+  date: number;
+}
+
 export interface CostBreakdown {
   materialCosts: { name: string; cost: number }[];
   totalMaterial: number;
