@@ -37,9 +37,18 @@ export interface FabricatedProject {
   salePrice: number;
   cost: number;
   date: number;
-  isFree: boolean; // gift/sample vs paid
-  useFixedPrice: boolean; // true = custom price, false = calculated price
-  fixedPrice: number; // the custom sale price when useFixedPrice is true
+  isFree: boolean;
+  useFixedPrice: boolean;
+  fixedPrice: number;
+  quantity: number; // how many units fabricated in this entry
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  category: "filamento" | "repuesto" | "otro";
+  amount: number;
+  date: number;
 }
 
 export interface CostBreakdown {
