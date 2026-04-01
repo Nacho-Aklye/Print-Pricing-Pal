@@ -179,7 +179,29 @@ export function useFabricatedProjects() {
     setFabricated((prev) => prev.filter((f) => f.id !== id));
   };
 
-  return { fabricated, addFabricated, deleteFabricated };
+  const updateFabricated = (id: string, updates: Partial<import("./types").FabricatedProject>) => {
+    setFabricated((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+  };
+
+  return { fabricated, addFabricated, deleteFabricated, updateFabricated };
+}
+
+export function useExpenses() {
+  const [expenses, setExpenses] = useState<Expense[]>(() => load("calc3d_expenses", []));
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_expenses", JSON.stringify(expenses));
+  }, [expenses]);
+
+  const addExpense = (entry: Omit<Expense, "id">) => {
+    setExpenses((prev) => [...prev, { ...entry, id: Date.now().toString() }]);
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  return { expenses, addExpense, deleteExpense };
 }
 
 export function useInvestmentGoal() {
