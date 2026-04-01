@@ -7,6 +7,7 @@ export interface Material {
   costPerKg: number;
   spoolWeightG: number; // initial spool weight in grams (default 1000)
   weightUsedG: number; // total weight used across all fabricated projects
+  spoolCount: number; // number of identical spools
 }
 
 export interface MaterialEntry {
@@ -36,9 +37,18 @@ export interface FabricatedProject {
   salePrice: number;
   cost: number;
   date: number;
-  isFree: boolean; // gift/sample vs paid
-  useFixedPrice: boolean; // true = custom price, false = calculated price
-  fixedPrice: number; // the custom sale price when useFixedPrice is true
+  isFree: boolean;
+  useFixedPrice: boolean;
+  fixedPrice: number;
+  quantity: number; // how many units fabricated in this entry
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  category: "filamento" | "repuesto" | "otro";
+  amount: number;
+  date: number;
 }
 
 export interface CostBreakdown {
@@ -54,16 +64,16 @@ export interface CostBreakdown {
 }
 
 export const DEFAULT_MATERIALS: Material[] = [
-  { id: "1", name: "ABS", brand: "eSUN", details: "", colors: ["#222222"], costPerKg: 14000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "2", name: "ASA", brand: "eSUN", details: "", colors: ["#333333"], costPerKg: 16000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "3", name: "PETG", brand: "eSUN", details: "", colors: ["#4488cc"], costPerKg: 15000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "4", name: "PETG HS", brand: "eSUN", details: "", colors: ["#5599dd"], costPerKg: 16000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "5", name: "PETG+ HS", brand: "eSUN", details: "", colors: ["#66aaee"], costPerKg: 17000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "6", name: "PLA", brand: "eSUN", details: "", colors: ["#eeeeee"], costPerKg: 12000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "7", name: "PLA+", brand: "eSUN", details: "", colors: ["#dddddd"], costPerKg: 13000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "8", name: "PLA+ HS", brand: "eSUN", details: "", colors: ["#cccccc"], costPerKg: 14000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "9", name: "PLA Silk", brand: "eSUN", details: "Acabado metálico", colors: ["#c9a84c"], costPerKg: 18000, spoolWeightG: 1000, weightUsedG: 0 },
-  { id: "10", name: "TPU", brand: "eSUN", details: "Flexible", colors: ["#cc4444"], costPerKg: 25000, spoolWeightG: 1000, weightUsedG: 0 },
+  { id: "1", name: "ABS", brand: "eSUN", details: "", colors: ["#222222"], costPerKg: 14000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "2", name: "ASA", brand: "eSUN", details: "", colors: ["#333333"], costPerKg: 16000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "3", name: "PETG", brand: "eSUN", details: "", colors: ["#4488cc"], costPerKg: 15000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "4", name: "PETG HS", brand: "eSUN", details: "", colors: ["#5599dd"], costPerKg: 16000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "5", name: "PETG+ HS", brand: "eSUN", details: "", colors: ["#66aaee"], costPerKg: 17000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "6", name: "PLA", brand: "eSUN", details: "", colors: ["#eeeeee"], costPerKg: 12000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "7", name: "PLA+", brand: "eSUN", details: "", colors: ["#dddddd"], costPerKg: 13000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "8", name: "PLA+ HS", brand: "eSUN", details: "", colors: ["#cccccc"], costPerKg: 14000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "9", name: "PLA Silk", brand: "eSUN", details: "Acabado metálico", colors: ["#c9a84c"], costPerKg: 18000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
+  { id: "10", name: "TPU", brand: "eSUN", details: "Flexible", colors: ["#cc4444"], costPerKg: 25000, spoolWeightG: 1000, weightUsedG: 0, spoolCount: 1 },
 ];
 
 export const formatCLP = (value: number) =>

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Material, Project } from "./types";
+import type { Material, Project, Expense } from "./types";
 import { DEFAULT_MATERIALS } from "./types";
 
-const DATA_VERSION = 4;
+const DATA_VERSION = 5;
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -13,12 +13,11 @@ function load<T>(key: string, fallback: T): T {
   }
 }
 
-/** Migrate old recipe data to project format */
+/** Migrate old data */
 function migrateData() {
   const version = load("calc3d_version", 0);
   if (version >= DATA_VERSION) return;
 
-  // Migrate recipes → projects
   if (version < 2) {
     const oldRecipes = load<any[]>("calc3d_recipes", []);
     if (oldRecipes.length > 0) {
@@ -32,7 +31,6 @@ function migrateData() {
     }
   }
 
-  // Add photos field to existing projects
   if (version < 3) {
     const existing = load<any[]>("calc3d_projects", []);
     if (existing.length > 0) {
@@ -44,7 +42,6 @@ function migrateData() {
     }
   }
 
-  // Add spool weight tracking to materials + free/fixed fields to fabricated
   if (version < 4) {
     const mats = load<any[]>("calc3d_materials", []);
     if (mats.length > 0) {
@@ -67,10 +64,29 @@ function migrateData() {
     }
   }
 
+  // v5: spoolCount + quantity + expenses
+  if (version < 5) {
+    const mats = load<any[]>("calc3d_materials", []);
+    if (mats.length > 0) {
+      const migrated = mats.map((m) => ({
+        ...m,
+        spoolCount: m.spoolCount ?? 1,
+      }));
+      localStorage.setItem("calc3d_materials", JSON.stringify(migrated));
+    }
+    const fab = load<any[]>("calc3d_fabricated", []);
+    if (fab.length > 0) {
+      const migrated = fab.map((f) => ({
+        ...f,
+        quantity: f.quantity ?? 1,
+      }));
+      localStorage.setItem("calc3d_fabricated", JSON.stringify(migrated));
+    }
+  }
+
   localStorage.setItem("calc3d_version", JSON.stringify(DATA_VERSION));
 }
 
-// Run migration on module load
 migrateData();
 
 export function useMaterials() {
@@ -163,7 +179,29 @@ export function useFabricatedProjects() {
     setFabricated((prev) => prev.filter((f) => f.id !== id));
   };
 
-  return { fabricated, addFabricated, deleteFabricated };
+  const updateFabricated = (id: string, updates: Partial<import("./types").FabricatedProject>) => {
+    setFabricated((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+  };
+
+  return { fabricated, addFabricated, deleteFabricated, updateFabricated };
+}
+
+export function useExpenses() {
+  const [expenses, setExpenses] = useState<Expense[]>(() => load("calc3d_expenses", []));
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_expenses", JSON.stringify(expenses));
+  }, [expenses]);
+
+  const addExpense = (entry: Omit<Expense, "id">) => {
+    setExpenses((prev) => [...prev, { ...entry, id: Date.now().toString() }]);
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  return { expenses, addExpense, deleteExpense };
 }
 
 export function useInvestmentGoal() {
