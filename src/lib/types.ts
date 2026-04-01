@@ -7,6 +7,7 @@ export interface Material {
   costPerKg: number;
   spoolWeightG: number; // initial spool weight in grams (default 1000)
   weightUsedG: number; // total weight used across all fabricated projects
+  spoolCount: number; // number of identical spools
 }
 
 export interface MaterialEntry {
