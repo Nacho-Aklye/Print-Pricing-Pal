@@ -21,6 +21,8 @@ const Finances = () => {
   const { goal, setGoal } = useInvestmentGoal();
   const { expenses, addExpense, deleteExpense } = useExpenses();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [showAddSale, setShowAddSale] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState("");
