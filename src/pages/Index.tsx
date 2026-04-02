@@ -4,6 +4,7 @@ import { useMaterials, useProjects, useSettings } from "@/lib/hooks";
 import type { MaterialEntry, CostBreakdown } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 import { MaterialSelector } from "@/components/MaterialSelector";
+import { Print3DNav } from "@/components/Print3DNav";
 import { useSearchParams } from "react-router-dom";
 
 const MARGIN_TIPS = [
