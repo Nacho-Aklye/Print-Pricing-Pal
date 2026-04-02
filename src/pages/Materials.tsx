@@ -5,6 +5,7 @@ import type { Material } from "@/lib/types";
 import { formatCLP, groupMaterialsByType } from "@/lib/types";
 import { ColorPicker } from "@/components/ColorPicker";
 import { MaterialColorDots } from "@/components/MaterialColorDots";
+import { Print3DNav } from "@/components/Print3DNav";
 
 const Materials = () => {
   const { materials, addMaterial, updateMaterial, deleteMaterial } = useMaterials();
