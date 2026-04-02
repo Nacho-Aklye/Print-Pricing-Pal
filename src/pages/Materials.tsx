@@ -141,7 +141,7 @@ const Materials = () => {
                     {mats.map((mat) => {
                       const remaining = getTotalRemainingG(mat);
                       const pct = getRemainingPercent(mat);
-                      const barColor = pct > 30 ? "bg-accent" : pct > 10 ? "bg-yellow-500" : "bg-destructive";
+                      const barColor = pct > 30 ? "bg-accent" : pct > 10 ? "bg-warning" : "bg-destructive";
                       const count = mat.spoolCount ?? 1;
 
                       return (

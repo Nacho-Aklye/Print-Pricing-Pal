@@ -79,7 +79,7 @@ const Projects = () => {
   };
 
   const loadInCalculator = (project: Project) => {
-    navigate(`/?proyecto=${project.id}`);
+    navigate(`/3d?proyecto=${project.id}`);
   };
 
   return (
