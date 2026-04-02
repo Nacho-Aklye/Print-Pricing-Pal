@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart } from "lucide-react";
 import { useProjects, useMaterials, useSettings, useFabricatedProjects, useInvestmentGoal, useExpenses } from "@/lib/hooks";
 import type { FabricatedProject, Expense } from "@/lib/types";
