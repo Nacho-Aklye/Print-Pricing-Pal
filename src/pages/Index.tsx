@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Printer, Zap, Clock, Calculator, TrendingUp, Info, ShoppingBag, Save } from "lucide-react";
+import { Zap, Clock, Calculator, TrendingUp, Info, ShoppingBag, Save, Printer } from "lucide-react";
 import { useMaterials, useProjects, useSettings } from "@/lib/hooks";
 import type { MaterialEntry, CostBreakdown } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
