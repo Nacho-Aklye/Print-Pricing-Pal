@@ -85,7 +85,8 @@ const Projects = () => {
   return (
     <div className="min-h-screen px-4 py-8 md:py-16">
       <div className="mx-auto max-w-xl">
-        <div className="mb-6 animate-fade-in-up">
+        <Print3DNav />
+        <div className="mb-5 animate-fade-in-up">
           <h1 className="text-xl font-bold tracking-tight">Proyectos</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{projects.length} proyectos guardados</p>
         </div>

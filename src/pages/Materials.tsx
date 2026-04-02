@@ -86,7 +86,8 @@ const Materials = () => {
   return (
     <div className="min-h-screen px-4 py-8 md:py-16">
       <div className="mx-auto max-w-xl">
-        <div className="flex items-center justify-between mb-6 animate-fade-in-up">
+        <Print3DNav />
+        <div className="flex items-center justify-between mb-5 animate-fade-in-up">
           <div>
             <h1 className="text-xl font-bold tracking-tight">Materiales</h1>
             <p className="text-xs text-muted-foreground mt-0.5">{materials.length} filamentos registrados</p>

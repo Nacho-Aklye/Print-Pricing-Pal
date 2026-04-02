@@ -91,20 +91,11 @@ const Index = () => {
   return (
     <div className="min-h-screen px-4 py-8 md:py-16">
       <div className="mx-auto max-w-xl">
+        <Print3DNav />
         {/* Header */}
-        <div className="mb-10 animate-fade-in-up">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Printer className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight leading-none">Calculadora 3D</h1>
-              <span className="text-[10px] text-muted-foreground font-mono">Bambu Lab P2S + AMS 2 PRO</span>
-            </div>
-          </div>
-          <p className="text-muted-foreground text-sm">
-            Costea impresiones multicolor de forma rápida.
-          </p>
+        <div className="mb-8 animate-fade-in-up">
+          <h1 className="text-xl font-bold tracking-tight">Calculadora 3D</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Costea impresiones multicolor de forma rápida</p>
         </div>
 
         {/* Loaded project indicator */}
