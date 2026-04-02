@@ -40,6 +40,14 @@ const Finances = () => {
   const [expAmount, setExpAmount] = useState("");
   const [expCategory, setExpCategory] = useState<Expense["category"]>("filamento");
 
+  // Auto-open from dashboard quick actions
+  useEffect(() => {
+    const accion = searchParams.get("accion");
+    if (accion === "venta") { setShowAddSale(true); setShowAddExpense(false); }
+    if (accion === "gasto") { setShowAddExpense(true); setShowAddSale(false); }
+    if (accion) setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   const calcCostBreakdown = (projectId: string) => {
     const project = projects.find((p) => p.id === projectId);
     if (!project) return { materialCost: 0, electricity: 0, labor: 0, modelCost: 0, total: 0 };
