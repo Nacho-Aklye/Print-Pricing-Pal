@@ -5,12 +5,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNav } from "@/components/BottomNav";
-import Index from "./pages/Index.tsx";
-import Materials from "./pages/Materials.tsx";
-import Projects from "./pages/Projects.tsx";
-import Finances from "./pages/Finances.tsx";
-import Settings from "./pages/Settings.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import Dashboard from "./pages/Dashboard";
+import Index from "./pages/Index";
+import Materials from "./pages/Materials";
+import Projects from "./pages/Projects";
+import Finances from "./pages/Finances";
+import Photography from "./pages/Photography";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -21,13 +23,18 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="pb-16">
+          <div className="pb-20">
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/3d" element={<Index />} />
+              <Route path="/3d/materiales" element={<Materials />} />
+              <Route path="/3d/proyectos" element={<Projects />} />
+              <Route path="/finanzas" element={<Finances />} />
+              <Route path="/foto" element={<Photography />} />
+              <Route path="/ajustes" element={<Settings />} />
+              {/* Legacy redirects */}
               <Route path="/materiales" element={<Materials />} />
               <Route path="/proyectos" element={<Projects />} />
-              <Route path="/finanzas" element={<Finances />} />
-              <Route path="/ajustes" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
