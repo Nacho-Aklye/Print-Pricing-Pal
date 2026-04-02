@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart } from "lucide-react";
 import { useProjects, useMaterials, useSettings, useFabricatedProjects, useInvestmentGoal, useExpenses } from "@/lib/hooks";
 import type { FabricatedProject, Expense } from "@/lib/types";
@@ -20,6 +21,8 @@ const Finances = () => {
   const { goal, setGoal } = useInvestmentGoal();
   const { expenses, addExpense, deleteExpense } = useExpenses();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [showAddSale, setShowAddSale] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState("");
@@ -36,6 +39,14 @@ const Finances = () => {
   const [expDesc, setExpDesc] = useState("");
   const [expAmount, setExpAmount] = useState("");
   const [expCategory, setExpCategory] = useState<Expense["category"]>("filamento");
+
+  // Auto-open from dashboard quick actions
+  useEffect(() => {
+    const accion = searchParams.get("accion");
+    if (accion === "venta") { setShowAddSale(true); setShowAddExpense(false); }
+    if (accion === "gasto") { setShowAddExpense(true); setShowAddSale(false); }
+    if (accion) setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const calcCostBreakdown = (projectId: string) => {
     const project = projects.find((p) => p.id === projectId);

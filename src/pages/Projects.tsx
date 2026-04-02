@@ -4,6 +4,7 @@ import { useProjects, useMaterials } from "@/lib/hooks";
 import type { Project } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 import { MaterialColorDots } from "@/components/MaterialColorDots";
+import { Print3DNav } from "@/components/Print3DNav";
 import { useNavigate } from "react-router-dom";
 
 const MAX_PHOTOS = 5;
@@ -78,13 +79,14 @@ const Projects = () => {
   };
 
   const loadInCalculator = (project: Project) => {
-    navigate(`/?proyecto=${project.id}`);
+    navigate(`/3d?proyecto=${project.id}`);
   };
 
   return (
     <div className="min-h-screen px-4 py-8 md:py-16">
       <div className="mx-auto max-w-xl">
-        <div className="mb-6 animate-fade-in-up">
+        <Print3DNav />
+        <div className="mb-5 animate-fade-in-up">
           <h1 className="text-xl font-bold tracking-tight">Proyectos</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{projects.length} proyectos guardados</p>
         </div>

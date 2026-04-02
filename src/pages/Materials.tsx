@@ -5,6 +5,7 @@ import type { Material } from "@/lib/types";
 import { formatCLP, groupMaterialsByType } from "@/lib/types";
 import { ColorPicker } from "@/components/ColorPicker";
 import { MaterialColorDots } from "@/components/MaterialColorDots";
+import { Print3DNav } from "@/components/Print3DNav";
 
 const Materials = () => {
   const { materials, addMaterial, updateMaterial, deleteMaterial } = useMaterials();
@@ -85,7 +86,8 @@ const Materials = () => {
   return (
     <div className="min-h-screen px-4 py-8 md:py-16">
       <div className="mx-auto max-w-xl">
-        <div className="flex items-center justify-between mb-6 animate-fade-in-up">
+        <Print3DNav />
+        <div className="flex items-center justify-between mb-5 animate-fade-in-up">
           <div>
             <h1 className="text-xl font-bold tracking-tight">Materiales</h1>
             <p className="text-xs text-muted-foreground mt-0.5">{materials.length} filamentos registrados</p>
@@ -139,7 +141,7 @@ const Materials = () => {
                     {mats.map((mat) => {
                       const remaining = getTotalRemainingG(mat);
                       const pct = getRemainingPercent(mat);
-                      const barColor = pct > 30 ? "bg-accent" : pct > 10 ? "bg-yellow-500" : "bg-destructive";
+                      const barColor = pct > 30 ? "bg-accent" : pct > 10 ? "bg-warning" : "bg-destructive";
                       const count = mat.spoolCount ?? 1;
 
                       return (
