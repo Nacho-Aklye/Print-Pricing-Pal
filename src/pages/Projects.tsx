@@ -4,6 +4,7 @@ import { useProjects, useMaterials } from "@/lib/hooks";
 import type { Project } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 import { MaterialColorDots } from "@/components/MaterialColorDots";
+import { Print3DNav } from "@/components/Print3DNav";
 import { useNavigate } from "react-router-dom";
 
 const MAX_PHOTOS = 5;
