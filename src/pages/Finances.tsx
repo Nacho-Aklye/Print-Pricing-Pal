@@ -20,6 +20,7 @@ const Finances = () => {
   const { fabricated, addFabricated, deleteFabricated } = useFabricatedProjects();
   const { goal, setGoal } = useInvestmentGoal();
   const { expenses, addExpense, deleteExpense } = useExpenses();
+  const { clients } = useClients();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
