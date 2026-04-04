@@ -34,6 +34,7 @@ export type Recipe = Project;
 export interface FabricatedProject {
   id: string;
   projectId: string;
+  clientId?: string; // optional link to client
   salePrice: number;
   cost: number;
   date: number;
@@ -41,6 +42,17 @@ export interface FabricatedProject {
   useFixedPrice: boolean;
   fixedPrice: number;
   quantity: number; // how many units fabricated in this entry
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  notes: string;
+  tags: string[]; // e.g. "3D", "Foto", "Frecuente"
+  createdAt: number;
 }
 
 export interface Expense {

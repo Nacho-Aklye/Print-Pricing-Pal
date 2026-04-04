@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   TrendingUp, TrendingDown, DollarSign, Target, Plus,
   Calculator, ShoppingCart, AlertTriangle, Printer, Camera,
-  ChevronRight, Package, Gift, Receipt
+  ChevronRight, Package, Gift, Receipt, Settings, Users
 } from "lucide-react";
-import { useMaterials, useProjects, useFabricatedProjects, useInvestmentGoal, useExpenses, useSettings } from "@/lib/hooks";
+import { useMaterials, useProjects, useFabricatedProjects, useInvestmentGoal, useExpenses, useSettings, useClients } from "@/lib/hooks";
 import type { FabricatedProject, Expense } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 
@@ -17,6 +17,7 @@ const Dashboard = () => {
   const { expenses } = useExpenses();
   const { goal } = useInvestmentGoal();
   const { settings } = useSettings();
+  const { clients } = useClients();
 
   const totals = useMemo(() => {
     let totalRevenue = 0;
@@ -63,11 +64,16 @@ const Dashboard = () => {
     <div className="min-h-screen px-4 py-6 md:py-12">
       <div className="mx-auto max-w-xl space-y-5">
         {/* Header */}
-        <div className="animate-fade-in-up">
-          <h1 className="text-2xl font-bold tracking-tight">{greeting} 👋</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {new Date().toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
+        <div className="animate-fade-in-up flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{greeting} 👋</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {new Date().toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" })}
+            </p>
+          </div>
+          <button onClick={() => navigate("/ajustes")} className="p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+            <Settings className="h-5 w-5 text-muted-foreground" />
+          </button>
         </div>
 
         {/* Financial summary */}
@@ -143,6 +149,7 @@ const Dashboard = () => {
         {(fabricated.length > 0 || expenses.length > 0) && (
           <div className="flex gap-3 text-[11px] text-muted-foreground flex-wrap animate-fade-in-up" style={{ animationDelay: "200ms" }}>
             <span className="flex items-center gap-1"><Package className="h-3 w-3" /> {projects.length} proyectos</span>
+            <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {clients.length} clientes</span>
             <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> {totals.paidCount} ventas</span>
             <span className="flex items-center gap-1"><Gift className="h-3 w-3" /> {totals.freeCount} muestras</span>
             {totals.totalExpenses > 0 && (

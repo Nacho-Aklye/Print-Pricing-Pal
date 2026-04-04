@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart } from "lucide-react";
-import { useProjects, useMaterials, useSettings, useFabricatedProjects, useInvestmentGoal, useExpenses } from "@/lib/hooks";
+import { useProjects, useMaterials, useSettings, useFabricatedProjects, useInvestmentGoal, useExpenses, useClients } from "@/lib/hooks";
 import type { FabricatedProject, Expense } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 
@@ -20,6 +20,7 @@ const Finances = () => {
   const { fabricated, addFabricated, deleteFabricated } = useFabricatedProjects();
   const { goal, setGoal } = useInvestmentGoal();
   const { expenses, addExpense, deleteExpense } = useExpenses();
+  const { clients } = useClients();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -34,6 +35,7 @@ const Finances = () => {
   const [goalInput, setGoalInput] = useState(goal > 0 ? String(goal) : "");
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [detailView, setDetailView] = useState<DetailView>(null);
+  const [selectedClientId, setSelectedClientId] = useState("");
 
   // Expense form
   const [expDesc, setExpDesc] = useState("");
@@ -94,6 +96,7 @@ const Finances = () => {
 
     addFabricated({
       projectId: selectedProjectId,
+      clientId: selectedClientId || undefined,
       salePrice: finalSalePrice,
       cost: finalCost,
       date: Date.now(),
@@ -104,6 +107,7 @@ const Finances = () => {
     });
 
     setSelectedProjectId("");
+    setSelectedClientId("");
     setSalePrice("");
     setFixedPrice("");
     setQuantity("1");
@@ -230,6 +234,12 @@ const Finances = () => {
           <select value={selectedProjectId} onChange={(e) => setSelectedProjectId(e.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
             <option value="">Seleccionar proyecto...</option>
             {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+
+          {/* Client selector */}
+          <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
+            <option value="">Sin cliente asignado</option>
+            {clients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ""}</option>)}
           </select>
 
           {/* Quantity */}

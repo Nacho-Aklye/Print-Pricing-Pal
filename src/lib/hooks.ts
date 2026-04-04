@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Material, Project, Expense } from "./types";
+import type { Material, Project, Expense, Client } from "./types";
 import { DEFAULT_MATERIALS } from "./types";
 
 const DATA_VERSION = 5;
@@ -202,6 +202,28 @@ export function useExpenses() {
   };
 
   return { expenses, addExpense, deleteExpense };
+}
+
+export function useClients() {
+  const [clients, setClients] = useState<Client[]>(() => load("calc3d_clients", []));
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_clients", JSON.stringify(clients));
+  }, [clients]);
+
+  const addClient = (client: Omit<Client, "id" | "createdAt">) => {
+    setClients((prev) => [...prev, { ...client, id: Date.now().toString(), createdAt: Date.now() }]);
+  };
+
+  const updateClient = (id: string, updates: Partial<Client>) => {
+    setClients((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+  };
+
+  const deleteClient = (id: string) => {
+    setClients((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  return { clients, addClient, updateClient, deleteClient };
 }
 
 export function useInvestmentGoal() {

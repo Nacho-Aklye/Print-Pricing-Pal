@@ -11,6 +11,7 @@ import Materials from "./pages/Materials";
 import Projects from "./pages/Projects";
 import Finances from "./pages/Finances";
 import Photography from "./pages/Photography";
+import Clients from "./pages/Clients";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/3d/proyectos" element={<Projects />} />
               <Route path="/finanzas" element={<Finances />} />
               <Route path="/foto" element={<Photography />} />
+              <Route path="/clientes" element={<Clients />} />
               <Route path="/ajustes" element={<Settings />} />
               {/* Legacy redirects */}
               <Route path="/materiales" element={<Materials />} />
