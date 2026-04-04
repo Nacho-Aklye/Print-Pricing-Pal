@@ -149,6 +149,7 @@ const Dashboard = () => {
         {(fabricated.length > 0 || expenses.length > 0) && (
           <div className="flex gap-3 text-[11px] text-muted-foreground flex-wrap animate-fade-in-up" style={{ animationDelay: "200ms" }}>
             <span className="flex items-center gap-1"><Package className="h-3 w-3" /> {projects.length} proyectos</span>
+            <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {clients.length} clientes</span>
             <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> {totals.paidCount} ventas</span>
             <span className="flex items-center gap-1"><Gift className="h-3 w-3" /> {totals.freeCount} muestras</span>
             {totals.totalExpenses > 0 && (
