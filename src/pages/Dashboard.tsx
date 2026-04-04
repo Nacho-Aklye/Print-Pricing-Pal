@@ -17,6 +17,7 @@ const Dashboard = () => {
   const { expenses } = useExpenses();
   const { goal } = useInvestmentGoal();
   const { settings } = useSettings();
+  const { clients } = useClients();
 
   const totals = useMemo(() => {
     let totalRevenue = 0;
