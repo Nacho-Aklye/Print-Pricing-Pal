@@ -64,11 +64,16 @@ const Dashboard = () => {
     <div className="min-h-screen px-4 py-6 md:py-12">
       <div className="mx-auto max-w-xl space-y-5">
         {/* Header */}
-        <div className="animate-fade-in-up">
-          <h1 className="text-2xl font-bold tracking-tight">{greeting} 👋</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {new Date().toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
+        <div className="animate-fade-in-up flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{greeting} 👋</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {new Date().toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" })}
+            </p>
+          </div>
+          <button onClick={() => navigate("/ajustes")} className="p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+            <Settings className="h-5 w-5 text-muted-foreground" />
+          </button>
         </div>
 
         {/* Financial summary */}
