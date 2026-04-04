@@ -96,6 +96,7 @@ const Finances = () => {
 
     addFabricated({
       projectId: selectedProjectId,
+      clientId: selectedClientId || undefined,
       salePrice: finalSalePrice,
       cost: finalCost,
       date: Date.now(),
@@ -106,6 +107,7 @@ const Finances = () => {
     });
 
     setSelectedProjectId("");
+    setSelectedClientId("");
     setSalePrice("");
     setFixedPrice("");
     setQuantity("1");
