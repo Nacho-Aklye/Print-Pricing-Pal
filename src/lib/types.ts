@@ -34,6 +34,7 @@ export type Recipe = Project;
 export interface FabricatedProject {
   id: string;
   projectId: string;
+  clientId?: string; // optional link to client
   salePrice: number;
   cost: number;
   date: number;
