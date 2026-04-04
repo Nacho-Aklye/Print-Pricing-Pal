@@ -32,6 +32,7 @@ const App = () => (
               <Route path="/3d/proyectos" element={<Projects />} />
               <Route path="/finanzas" element={<Finances />} />
               <Route path="/foto" element={<Photography />} />
+              <Route path="/clientes" element={<Clients />} />
               <Route path="/ajustes" element={<Settings />} />
               {/* Legacy redirects */}
               <Route path="/materiales" element={<Materials />} />

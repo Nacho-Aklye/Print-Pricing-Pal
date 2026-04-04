@@ -1,12 +1,12 @@
-import { LayoutDashboard, Printer, Camera, BarChart3, Settings } from "lucide-react";
+import { LayoutDashboard, Printer, Camera, BarChart3, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const links = [
   { to: "/", icon: LayoutDashboard, label: "Inicio", end: true },
   { to: "/3d", icon: Printer, label: "3D" },
   { to: "/foto", icon: Camera, label: "Foto" },
+  { to: "/clientes", icon: Users, label: "Clientes" },
   { to: "/finanzas", icon: BarChart3, label: "Finanzas" },
-  { to: "/ajustes", icon: Settings, label: "Ajustes" },
 ];
 
 export const BottomNav = () => (
