@@ -43,6 +43,17 @@ export interface FabricatedProject {
   quantity: number; // how many units fabricated in this entry
 }
 
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  notes: string;
+  tags: string[]; // e.g. "3D", "Foto", "Frecuente"
+  createdAt: number;
+}
+
 export interface Expense {
   id: string;
   description: string;
