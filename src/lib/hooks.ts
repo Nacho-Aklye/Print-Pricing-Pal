@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Material, Project, Expense } from "./types";
+import type { Material, Project, Expense, Client } from "./types";
 import { DEFAULT_MATERIALS } from "./types";
 
 const DATA_VERSION = 5;
