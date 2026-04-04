@@ -12,11 +12,6 @@ const BACKUP_KEYS = [
   "calc3d_goal",
   "calc3d_fav_colors",
   "calc3d_expenses",
-  "calc3d_clients",
-  "photo_packages",
-  "photo_extras",
-  "photo_quotes",
-  "photo_branding",
 ];
 
 const Settings = () => {
