@@ -236,6 +236,12 @@ const Finances = () => {
             {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
 
+          {/* Client selector */}
+          <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
+            <option value="">Sin cliente asignado</option>
+            {clients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ""}</option>)}
+          </select>
+
           {/* Quantity */}
           <div className="flex items-center gap-3">
             <label className="text-sm text-muted-foreground">Cantidad</label>
