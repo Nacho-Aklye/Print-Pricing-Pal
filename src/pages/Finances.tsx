@@ -35,6 +35,7 @@ const Finances = () => {
   const [goalInput, setGoalInput] = useState(goal > 0 ? String(goal) : "");
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [detailView, setDetailView] = useState<DetailView>(null);
+  const [selectedClientId, setSelectedClientId] = useState("");
 
   // Expense form
   const [expDesc, setExpDesc] = useState("");
