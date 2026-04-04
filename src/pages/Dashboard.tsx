@@ -5,7 +5,7 @@ import {
   Calculator, ShoppingCart, AlertTriangle, Printer, Camera,
   ChevronRight, Package, Gift, Receipt, Settings, Users
 } from "lucide-react";
-import { useMaterials, useProjects, useFabricatedProjects, useInvestmentGoal, useExpenses, useSettings } from "@/lib/hooks";
+import { useMaterials, useProjects, useFabricatedProjects, useInvestmentGoal, useExpenses, useSettings, useClients } from "@/lib/hooks";
 import type { FabricatedProject, Expense } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 
