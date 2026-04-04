@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   TrendingUp, TrendingDown, DollarSign, Target, Plus,
   Calculator, ShoppingCart, AlertTriangle, Printer, Camera,
-  ChevronRight, Package, Gift, Receipt
+  ChevronRight, Package, Gift, Receipt, Settings, Users
 } from "lucide-react";
 import { useMaterials, useProjects, useFabricatedProjects, useInvestmentGoal, useExpenses, useSettings } from "@/lib/hooks";
 import type { FabricatedProject, Expense } from "@/lib/types";
