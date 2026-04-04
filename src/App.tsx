@@ -11,6 +11,7 @@ import Materials from "./pages/Materials";
 import Projects from "./pages/Projects";
 import Finances from "./pages/Finances";
 import Photography from "./pages/Photography";
+import Clients from "./pages/Clients";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
