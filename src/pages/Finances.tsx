@@ -1,17 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart, Filter } from "lucide-react";
 import { useProjects, useMaterials, useSettings, useFabricatedProjects, useInvestmentGoal, useExpenses, useClients } from "@/lib/hooks";
-import type { FabricatedProject, Expense } from "@/lib/types";
-import { formatCLP } from "@/lib/types";
+import type { FabricatedProject, Expense, ExpenseSource, ExpenseCategory } from "@/lib/types";
+import { formatCLP, EXPENSE_CATEGORIES_BY_SOURCE, EXPENSE_SOURCE_LABELS, ALL_EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/types";
 
 type DetailView = { type: "sale"; item: FabricatedProject } | { type: "expense"; item: Expense } | null;
-
-const EXPENSE_CATEGORIES: { value: Expense["category"]; label: string }[] = [
-  { value: "filamento", label: "Filamento" },
-  { value: "repuesto", label: "Repuesto" },
-  { value: "otro", label: "Otro" },
-];
 
 const Finances = () => {
   const { projects } = useProjects();
@@ -37,10 +31,22 @@ const Finances = () => {
   const [detailView, setDetailView] = useState<DetailView>(null);
   const [selectedClientId, setSelectedClientId] = useState("");
 
-  // Expense form
+  // Expense form (expanded)
   const [expDesc, setExpDesc] = useState("");
   const [expAmount, setExpAmount] = useState("");
-  const [expCategory, setExpCategory] = useState<Expense["category"]>("filamento");
+  const [expSource, setExpSource] = useState<ExpenseSource>("3d");
+  const [expCategory, setExpCategory] = useState<ExpenseCategory>("filamento");
+  const [expNotes, setExpNotes] = useState("");
+  const [expPayment, setExpPayment] = useState<Expense["paymentMethod"]>("efectivo");
+
+  // Filter
+  const [filterSource, setFilterSource] = useState<ExpenseSource | "all">("all");
+
+  // Update category when source changes
+  useEffect(() => {
+    const cats = EXPENSE_CATEGORIES_BY_SOURCE[expSource];
+    if (cats.length > 0) setExpCategory(cats[0].value);
+  }, [expSource]);
 
   // Auto-open from dashboard quick actions
   useEffect(() => {
@@ -83,7 +89,6 @@ const Finances = () => {
       finalCost = breakdown.total * qty;
     }
 
-    // Update material usage
     const project = projects.find((p) => p.id === selectedProjectId);
     if (project) {
       for (const entry of project.materials) {
@@ -106,23 +111,22 @@ const Finances = () => {
       quantity: qty,
     });
 
-    setSelectedProjectId("");
-    setSelectedClientId("");
-    setSalePrice("");
-    setFixedPrice("");
-    setQuantity("1");
-    setIsFree(false);
-    setUseFixedPrice(false);
-    setShowAddSale(false);
+    setSelectedProjectId(""); setSelectedClientId(""); setSalePrice(""); setFixedPrice("");
+    setQuantity("1"); setIsFree(false); setUseFixedPrice(false); setShowAddSale(false);
   };
 
   const handleAddExpense = () => {
     if (!expDesc.trim() || !expAmount) return;
-    addExpense({ description: expDesc, category: expCategory, amount: Number(expAmount) || 0, date: Date.now() });
-    setExpDesc("");
-    setExpAmount("");
-    setExpCategory("filamento");
-    setShowAddExpense(false);
+    addExpense({
+      description: expDesc,
+      category: expCategory,
+      source: expSource,
+      amount: Number(expAmount) || 0,
+      date: Date.now(),
+      notes: expNotes || undefined,
+      paymentMethod: expPayment,
+    });
+    setExpDesc(""); setExpAmount(""); setExpNotes(""); setShowAddExpense(false);
   };
 
   const totals = useMemo(() => {
@@ -142,14 +146,19 @@ const Finances = () => {
 
   const goalProgress = goal > 0 ? Math.min((totals.profit / goal) * 100, 100) : 0;
 
-  // Combined timeline
+  // Combined timeline with filter
   const timeline = useMemo(() => {
     const sales = fabricated.map((f) => ({ ...f, _type: "sale" as const }));
-    const exps = expenses.map((e) => ({ ...e, _type: "expense" as const }));
+    const filteredExpenses = filterSource === "all"
+      ? expenses
+      : expenses.filter(e => e.source === filterSource);
+    const exps = filteredExpenses.map((e) => ({ ...e, _type: "expense" as const }));
     return [...sales, ...exps].sort((a, b) => b.date - a.date);
-  }, [fabricated, expenses]);
+  }, [fabricated, expenses, filterSource]);
 
   const selectedBreakdown = selectedProjectId ? calcCostBreakdown(selectedProjectId) : null;
+
+  const getCategoryLabel = (cat: ExpenseCategory) => ALL_EXPENSE_CATEGORIES.find(c => c.value === cat)?.label || cat;
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6 space-y-6">
@@ -181,7 +190,7 @@ const Finances = () => {
 
       {/* Stats */}
       {fabricated.length > 0 && (
-        <div className="flex gap-3 text-xs text-muted-foreground">
+        <div className="flex gap-3 text-xs text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> {totals.paidCount} pagados</span>
           <span className="flex items-center gap-1"><Gift className="h-3 w-3" /> {totals.freeCount} gratis</span>
           {totals.totalExpenses > 0 && <span className="flex items-center gap-1"><Receipt className="h-3 w-3" /> {formatCLP(totals.totalExpenses)} en gastos</span>}
@@ -236,13 +245,11 @@ const Finances = () => {
             {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
 
-          {/* Client selector */}
           <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
             <option value="">Sin cliente asignado</option>
             {clients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ""}</option>)}
           </select>
 
-          {/* Quantity */}
           <div className="flex items-center gap-3">
             <label className="text-sm text-muted-foreground">Cantidad</label>
             <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-20 rounded-lg border bg-background px-3 py-2 text-sm font-mono text-center" />
@@ -262,7 +269,6 @@ const Finances = () => {
             </div>
           )}
 
-          {/* Free toggle */}
           <label className="flex items-center gap-3 cursor-pointer">
             <div onClick={() => { setIsFree(!isFree); if (!isFree) setUseFixedPrice(false); }} className={`relative w-10 h-5 rounded-full transition-colors ${isFree ? "bg-accent" : "bg-muted"}`}>
               <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${isFree ? "translate-x-5" : ""}`} />
@@ -296,23 +302,91 @@ const Finances = () => {
         </div>
       )}
 
-      {/* Add expense form */}
+      {/* Add expense form (EXPANDED) */}
       {showAddExpense && (
         <div className="rounded-xl bg-card border p-4 space-y-3 animate-fade-in-up">
           <h3 className="text-sm font-semibold">Nuevo gasto</h3>
-          <input placeholder="Descripción (ej: Rollo PLA+ eSUN)" value={expDesc} onChange={(e) => setExpDesc(e.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
-          <div className="flex gap-2">
-            <select value={expCategory} onChange={(e) => setExpCategory(e.target.value as Expense["category"])} className="rounded-lg border bg-background px-3 py-2 text-sm">
-              {EXPENSE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
-            <input type="number" placeholder="Monto CLP" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm font-mono" />
+
+          {/* Source selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground font-medium">Área</label>
+            <div className="flex gap-1.5">
+              {(Object.keys(EXPENSE_SOURCE_LABELS) as ExpenseSource[]).map(s => (
+                <button key={s} onClick={() => setExpSource(s)}
+                  className={`flex-1 rounded-lg border py-2 text-xs font-medium transition-colors ${
+                    expSource === s ? "border-accent bg-accent/10 text-accent" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {EXPENSE_SOURCE_LABELS[s]}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Category */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground font-medium">Categoría</label>
+            <div className="flex flex-wrap gap-1.5">
+              {EXPENSE_CATEGORIES_BY_SOURCE[expSource].map(c => (
+                <button key={c.value} onClick={() => setExpCategory(c.value)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    expCategory === c.value ? "border-accent bg-accent/10 text-accent" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <input placeholder="Descripción detallada (ej: Rollo PLA+ eSUN blanco 1kg)" value={expDesc}
+            onChange={(e) => setExpDesc(e.target.value)}
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground font-medium">Monto (CLP)</label>
+              <input type="number" placeholder="0" value={expAmount}
+                onChange={(e) => setExpAmount(e.target.value)}
+                className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-mono" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground font-medium">Método de pago</label>
+              <select value={expPayment} onChange={e => setExpPayment(e.target.value as any)}
+                className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
+                {PAYMENT_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <textarea placeholder="Notas adicionales (opcional)..." value={expNotes}
+            onChange={(e) => setExpNotes(e.target.value)}
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm min-h-[50px] resize-none" />
+
           <div className="flex gap-2">
-            <button onClick={handleAddExpense} disabled={!expDesc.trim() || !expAmount} className="flex-1 rounded-lg bg-accent px-3 py-2 text-xs font-medium text-accent-foreground disabled:opacity-50">Registrar gasto</button>
+            <button onClick={handleAddExpense} disabled={!expDesc.trim() || !expAmount}
+              className="flex-1 rounded-lg bg-accent px-3 py-2 text-xs font-medium text-accent-foreground disabled:opacity-50">
+              Registrar gasto
+            </button>
             <button onClick={() => setShowAddExpense(false)} className="rounded-lg border px-3 py-2 text-xs">Cancelar</button>
           </div>
         </div>
       )}
+
+      {/* Filter bar */}
+      <div className="flex items-center gap-2">
+        <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex gap-1">
+          <button onClick={() => setFilterSource("all")}
+            className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${filterSource === "all" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+            Todo
+          </button>
+          {(Object.keys(EXPENSE_SOURCE_LABELS) as ExpenseSource[]).map(s => (
+            <button key={s} onClick={() => setFilterSource(s)}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${filterSource === s ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+              {EXPENSE_SOURCE_LABELS[s]}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Timeline list */}
       {timeline.length === 0 ? (
@@ -361,11 +435,13 @@ const Finances = () => {
                     <div className="flex items-center gap-2">
                       <ShoppingCart className="h-3 w-3 text-destructive shrink-0" />
                       <p className="text-sm font-medium truncate">{e.description}</p>
-                      <span className="text-[9px] rounded-full bg-muted px-1.5 py-0.5 text-muted-foreground">{EXPENSE_CATEGORIES.find((c) => c.value === e.category)?.label}</span>
+                      <span className="text-[9px] rounded-full bg-muted px-1.5 py-0.5 text-muted-foreground">{getCategoryLabel(e.category)}</span>
+                      <span className="text-[9px] rounded-full bg-secondary px-1.5 py-0.5 text-secondary-foreground">{EXPENSE_SOURCE_LABELS[e.source || "3d"]}</span>
                     </div>
                     <div className="flex gap-3 text-xs text-muted-foreground pl-5">
                       <span className="text-destructive">-{formatCLP(e.amount)}</span>
                       <span>{new Date(e.date).toLocaleDateString("es-CL")}</span>
+                      {e.paymentMethod && <span className="capitalize">{e.paymentMethod}</span>}
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -391,9 +467,11 @@ const Finances = () => {
                   const project = projects.find((p) => p.id === f.projectId);
                   const bd = calcCostBreakdown(f.projectId);
                   const qty = f.quantity ?? 1;
+                  const client = f.clientId ? clients.find(c => c.id === f.clientId) : null;
                   return (
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between"><span className="text-muted-foreground">Proyecto</span><span className="font-medium">{project?.name || "Eliminado"}</span></div>
+                      {client && <div className="flex justify-between"><span className="text-muted-foreground">Cliente</span><span className="font-medium">{client.name}</span></div>}
                       <div className="flex justify-between"><span className="text-muted-foreground">Cantidad</span><span className="font-mono">{qty}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Fecha</span><span>{new Date(f.date).toLocaleDateString("es-CL")}</span></div>
                       {f.isFree && <div className="flex justify-between"><span className="text-muted-foreground">Tipo</span><span className="text-accent">Gratis / Muestra</span></div>}
@@ -427,10 +505,13 @@ const Finances = () => {
                   const e = detailView.item as Expense;
                   return (
                     <div className="space-y-3 text-sm">
-                      <div className="flex justify-between"><span className="text-muted-foreground">Descripción</span><span className="font-medium">{e.description}</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Categoría</span><span>{EXPENSE_CATEGORIES.find((c) => c.value === e.category)?.label}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Descripción</span><span className="font-medium text-right max-w-[60%]">{e.description}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Área</span><span>{EXPENSE_SOURCE_LABELS[e.source || "3d"]}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Categoría</span><span>{getCategoryLabel(e.category)}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Monto</span><span className="font-mono font-bold text-destructive">{formatCLP(e.amount)}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Fecha</span><span>{new Date(e.date).toLocaleDateString("es-CL")}</span></div>
+                      {e.paymentMethod && <div className="flex justify-between"><span className="text-muted-foreground">Medio de pago</span><span className="capitalize">{e.paymentMethod}</span></div>}
+                      {e.notes && <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">{e.notes}</div>}
                       <button onClick={() => { deleteExpense(e.id); setDetailView(null); }} className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-destructive/30 text-destructive py-2 text-xs font-medium hover:bg-destructive/10 transition-colors">
                         <Trash2 className="h-3.5 w-3.5" /> Eliminar registro
                       </button>

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Material, Project, Expense, Client } from "./types";
+import type { Material, Project, Expense, Client, PhotoQuote, PhotoPackage, BrandSettings } from "./types";
 import { DEFAULT_MATERIALS } from "./types";
 
-const DATA_VERSION = 5;
+const DATA_VERSION = 6;
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -81,6 +81,20 @@ function migrateData() {
         quantity: f.quantity ?? 1,
       }));
       localStorage.setItem("calc3d_fabricated", JSON.stringify(migrated));
+    }
+  }
+
+  // v6: migrate expenses to have source field
+  if (version < 6) {
+    const exps = load<any[]>("calc3d_expenses", []);
+    if (exps.length > 0) {
+      const migrated = exps.map((e) => ({
+        ...e,
+        source: e.source ?? "3d",
+        notes: e.notes ?? "",
+        paymentMethod: e.paymentMethod ?? "efectivo",
+      }));
+      localStorage.setItem("calc3d_expenses", JSON.stringify(migrated));
     }
   }
 
@@ -246,7 +260,7 @@ export function useFavoriteColors() {
   const addFavorite = useCallback((color: string) => {
     setFavorites((prev) => {
       if (prev.includes(color)) return prev;
-      return [...prev, color].slice(-30); // max 30 favorites
+      return [...prev, color].slice(-30);
     });
   }, []);
 
@@ -255,4 +269,77 @@ export function useFavoriteColors() {
   }, []);
 
   return { favorites, addFavorite, removeFavorite };
+}
+
+// ── Photography hooks ──
+
+export function usePhotoPackages() {
+  const [packages, setPackages] = useState<PhotoPackage[]>(() => load("calc3d_photo_packages", []));
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_photo_packages", JSON.stringify(packages));
+  }, [packages]);
+
+  const addPackage = (pkg: Omit<PhotoPackage, "id" | "createdAt">) => {
+    setPackages((prev) => [...prev, { ...pkg, id: Date.now().toString(), createdAt: Date.now() }]);
+  };
+
+  const updatePackage = (id: string, updates: Partial<PhotoPackage>) => {
+    setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+  };
+
+  const deletePackage = (id: string) => {
+    setPackages((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  return { packages, addPackage, updatePackage, deletePackage };
+}
+
+export function usePhotoQuotes() {
+  const [quotes, setQuotes] = useState<PhotoQuote[]>(() => load("calc3d_photo_quotes", []));
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_photo_quotes", JSON.stringify(quotes));
+  }, [quotes]);
+
+  const addQuote = (quote: Omit<PhotoQuote, "id" | "createdAt" | "updatedAt">) => {
+    const now = Date.now();
+    setQuotes((prev) => [...prev, { ...quote, id: now.toString(), createdAt: now, updatedAt: now }]);
+    return now.toString();
+  };
+
+  const updateQuote = (id: string, updates: Partial<PhotoQuote>) => {
+    setQuotes((prev) => prev.map((q) => (q.id === id ? { ...q, ...updates, updatedAt: Date.now() } : q)));
+  };
+
+  const deleteQuote = (id: string) => {
+    setQuotes((prev) => prev.filter((q) => q.id !== id));
+  };
+
+  return { quotes, addQuote, updateQuote, deleteQuote };
+}
+
+export function useBrandSettings() {
+  const [brand, setBrandState] = useState<BrandSettings>(() =>
+    load("calc3d_brand", {
+      businessName: "",
+      logo: "",
+      primaryColor: "#339966",
+      secondaryColor: "#1a1a2e",
+      phone: "",
+      email: "",
+      website: "",
+      socialMedia: "",
+    })
+  );
+
+  useEffect(() => {
+    localStorage.setItem("calc3d_brand", JSON.stringify(brand));
+  }, [brand]);
+
+  const updateBrand = (updates: Partial<BrandSettings>) => {
+    setBrandState((prev) => ({ ...prev, ...updates }));
+  };
+
+  return { brand, updateBrand };
 }
