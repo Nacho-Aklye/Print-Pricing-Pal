@@ -55,13 +55,125 @@ export interface Client {
   createdAt: number;
 }
 
+// ── Expanded expense categories ──
+
+export type ExpenseSource = "3d" | "foto" | "personal";
+
+export type ExpenseCategory =
+  // 3D
+  | "filamento" | "repuesto" | "herramienta_3d" | "mantenimiento_3d"
+  // Foto
+  | "equipo_foto" | "props" | "software_foto" | "edicion"
+  // Personal / General
+  | "transporte" | "alimentacion" | "arriendo" | "servicios" | "suscripciones" | "otro";
+
 export interface Expense {
   id: string;
   description: string;
-  category: "filamento" | "repuesto" | "otro";
+  category: ExpenseCategory;
+  source: ExpenseSource;
   amount: number;
   date: number;
+  notes?: string;
+  paymentMethod?: "efectivo" | "tarjeta" | "transferencia" | "otro";
 }
+
+export const EXPENSE_SOURCE_LABELS: Record<ExpenseSource, string> = {
+  "3d": "Impresión 3D",
+  "foto": "Fotografía",
+  "personal": "Personal",
+};
+
+export const EXPENSE_CATEGORIES_BY_SOURCE: Record<ExpenseSource, { value: ExpenseCategory; label: string; icon?: string }[]> = {
+  "3d": [
+    { value: "filamento", label: "Filamento" },
+    { value: "repuesto", label: "Repuesto / Pieza" },
+    { value: "herramienta_3d", label: "Herramienta" },
+    { value: "mantenimiento_3d", label: "Mantenimiento" },
+  ],
+  "foto": [
+    { value: "equipo_foto", label: "Equipo fotográfico" },
+    { value: "props", label: "Props / Utilería" },
+    { value: "software_foto", label: "Software / Licencia" },
+    { value: "edicion", label: "Edición / Retoque" },
+  ],
+  "personal": [
+    { value: "transporte", label: "Transporte" },
+    { value: "alimentacion", label: "Alimentación" },
+    { value: "arriendo", label: "Arriendo / Espacio" },
+    { value: "servicios", label: "Servicios básicos" },
+    { value: "suscripciones", label: "Suscripciones" },
+    { value: "otro", label: "Otro" },
+  ],
+};
+
+export const ALL_EXPENSE_CATEGORIES = Object.values(EXPENSE_CATEGORIES_BY_SOURCE).flat();
+
+export const PAYMENT_METHODS: { value: NonNullable<Expense["paymentMethod"]>; label: string }[] = [
+  { value: "efectivo", label: "Efectivo" },
+  { value: "tarjeta", label: "Tarjeta" },
+  { value: "transferencia", label: "Transferencia" },
+  { value: "otro", label: "Otro" },
+];
+
+// ── Photography Quotation ──
+
+export interface PhotoExtra {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface PhotoPackage {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: number;
+  includedPhotos: number;
+  includedEdits: number;
+  extras: string[]; // what's included description lines
+  createdAt: number;
+}
+
+export interface PhotoQuoteItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface PhotoQuote {
+  id: string;
+  clientId?: string;
+  type: "package" | "itemized";
+  packageId?: string; // if type is package
+  // Itemized fields
+  baseRate: number; // tarifa base por hora/sesión
+  baseRateUnit: "hora" | "sesion";
+  baseRateQty: number;
+  items: PhotoQuoteItem[]; // extras / additional items
+  // Common
+  title: string;
+  notes: string;
+  discount: number; // percentage
+  status: "borrador" | "enviado" | "aceptado" | "rechazado";
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ── Branding ──
+
+export interface BrandSettings {
+  businessName: string;
+  logo: string; // base64
+  primaryColor: string; // hex
+  secondaryColor: string; // hex
+  phone: string;
+  email: string;
+  website: string;
+  socialMedia: string;
+}
+
+// ── Helpers ──
 
 export interface CostBreakdown {
   materialCosts: { name: string; cost: number }[];
@@ -105,4 +217,21 @@ export function groupMaterialsByType(materials: Material[]): Record<string, Mate
   return Object.fromEntries(
     Object.entries(groups).sort(([a], [b]) => a.localeCompare(b, "es"))
   );
+}
+
+export function calcPhotoQuoteTotal(quote: PhotoQuote, packages: PhotoPackage[]): number {
+  let subtotal = 0;
+  if (quote.type === "package" && quote.packageId) {
+    const pkg = packages.find(p => p.id === quote.packageId);
+    if (pkg) subtotal = pkg.basePrice;
+  } else {
+    subtotal = quote.baseRate * quote.baseRateQty;
+  }
+  for (const item of quote.items) {
+    subtotal += item.quantity * item.unitPrice;
+  }
+  if (quote.discount > 0) {
+    subtotal = subtotal * (1 - quote.discount / 100);
+  }
+  return Math.round(subtotal);
 }
