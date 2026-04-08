@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart, Filter } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart, Filter, BarChart3 } from "lucide-react";
 import { useProjects, useMaterials, useSettings, useFabricatedProjects, useInvestmentGoal, useExpenses, useClients } from "@/lib/hooks";
 import type { FabricatedProject, Expense, ExpenseSource, ExpenseCategory } from "@/lib/types";
 import { formatCLP, EXPENSE_CATEGORIES_BY_SOURCE, EXPENSE_SOURCE_LABELS, ALL_EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/types";
+import { PeriodFilter, filterByPeriod, type Period } from "@/components/PeriodFilter";
+import { EvolutionChart, ExpenseBreakdownChart } from "@/components/FinanceCharts";
 
 type DetailView = { type: "sale"; item: FabricatedProject } | { type: "expense"; item: Expense } | null;
 
