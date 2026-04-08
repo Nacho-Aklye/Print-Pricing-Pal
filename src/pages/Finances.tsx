@@ -169,8 +169,18 @@ const Finances = () => {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6 space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Finanzas</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Finanzas</h1>
+        <button
+          onClick={() => setShowCharts(!showCharts)}
+          className={`p-1.5 rounded-lg transition-colors ${showCharts ? "bg-accent/10 text-accent" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <BarChart3 className="h-4 w-4" />
+        </button>
+      </div>
 
+      {/* Period filter */}
+      <PeriodFilter value={period} onChange={setPeriod} />
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-card border p-3 space-y-1">
