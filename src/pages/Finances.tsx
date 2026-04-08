@@ -141,27 +141,27 @@ const Finances = () => {
     let totalCost = 0;
     let paidCount = 0;
     let freeCount = 0;
-    for (const f of fabricated) {
+    for (const f of filteredFabricated) {
       totalRevenue += f.salePrice;
       totalCost += f.cost;
       if (f.isFree) freeCount++;
       else paidCount++;
     }
-    const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+    const totalExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
     return { totalRevenue, totalCost: totalCost + totalExpenses, totalProductionCost: totalCost, totalExpenses, profit: totalRevenue - totalCost - totalExpenses, paidCount, freeCount };
-  }, [fabricated, expenses]);
+  }, [filteredFabricated, filteredExpenses]);
 
   const goalProgress = goal > 0 ? Math.min((totals.profit / goal) * 100, 100) : 0;
 
   // Combined timeline with filter
   const timeline = useMemo(() => {
-    const sales = fabricated.map((f) => ({ ...f, _type: "sale" as const }));
-    const filteredExpenses = filterSource === "all"
-      ? expenses
-      : expenses.filter(e => e.source === filterSource);
-    const exps = filteredExpenses.map((e) => ({ ...e, _type: "expense" as const }));
+    const sales = filteredFabricated.map((f) => ({ ...f, _type: "sale" as const }));
+    const srcFiltered = filterSource === "all"
+      ? filteredExpenses
+      : filteredExpenses.filter(e => e.source === filterSource);
+    const exps = srcFiltered.map((e) => ({ ...e, _type: "expense" as const }));
     return [...sales, ...exps].sort((a, b) => b.date - a.date);
-  }, [fabricated, expenses, filterSource]);
+  }, [filteredFabricated, filteredExpenses, filterSource]);
 
   const selectedBreakdown = selectedProjectId ? calcCostBreakdown(selectedProjectId) : null;
 
