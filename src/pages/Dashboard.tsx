@@ -1,13 +1,16 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   TrendingUp, TrendingDown, DollarSign, Target, Plus,
   Calculator, ShoppingCart, AlertTriangle, Printer, Camera,
-  ChevronRight, Package, Gift, Receipt, Settings, Users
+  ChevronRight, Package, Gift, Receipt, Settings, Users,
+  BarChart3, Percent
 } from "lucide-react";
 import { useMaterials, useProjects, useFabricatedProjects, useInvestmentGoal, useExpenses, useSettings, useClients } from "@/lib/hooks";
 import type { FabricatedProject, Expense } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
+import { PeriodFilter, filterByPeriod, type Period } from "@/components/PeriodFilter";
+import { EvolutionChart, ProfitLineChart, ExpenseBreakdownChart } from "@/components/FinanceCharts";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -18,26 +21,32 @@ const Dashboard = () => {
   const { goal } = useInvestmentGoal();
   const { settings } = useSettings();
   const { clients } = useClients();
+  const [period, setPeriod] = useState<Period>("month");
+  const [showCharts, setShowCharts] = useState(true);
+
+  const filteredFabricated = useMemo(() => filterByPeriod(fabricated, period), [fabricated, period]);
+  const filteredExpenses = useMemo(() => filterByPeriod(expenses, period), [expenses, period]);
 
   const totals = useMemo(() => {
     let totalRevenue = 0;
     let totalCost = 0;
     let paidCount = 0;
     let freeCount = 0;
-    for (const f of fabricated) {
+    for (const f of filteredFabricated) {
       totalRevenue += f.salePrice;
       totalCost += f.cost;
       if (f.isFree) freeCount++;
       else paidCount++;
     }
-    const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+    const totalExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
     const profit = totalRevenue - totalCost - totalExpenses;
-    return { totalRevenue, totalCost: totalCost + totalExpenses, profit, paidCount, freeCount, totalExpenses };
-  }, [fabricated, expenses]);
+    const totalInvested = totalCost + totalExpenses;
+    const roi = totalInvested > 0 ? ((totalRevenue - totalInvested) / totalInvested) * 100 : 0;
+    return { totalRevenue, totalCost: totalInvested, profit, paidCount, freeCount, totalExpenses, roi };
+  }, [filteredFabricated, filteredExpenses]);
 
   const goalProgress = goal > 0 ? Math.min((totals.profit / goal) * 100, 100) : 0;
 
-  // Low stock alerts
   const lowStockMaterials = useMemo(() => {
     return materials.filter((mat) => {
       const totalCapacity = (mat.spoolWeightG ?? 1000) * (mat.spoolCount ?? 1);
@@ -46,12 +55,11 @@ const Dashboard = () => {
     });
   }, [materials]);
 
-  // Recent timeline (last 5)
   const recentActivity = useMemo(() => {
-    const sales = fabricated.map((f) => ({ ...f, _type: "sale" as const }));
-    const exps = expenses.map((e) => ({ ...e, _type: "expense" as const }));
+    const sales = filteredFabricated.map((f) => ({ ...f, _type: "sale" as const }));
+    const exps = filteredExpenses.map((e) => ({ ...e, _type: "expense" as const }));
     return [...sales, ...exps].sort((a, b) => b.date - a.date).slice(0, 5);
-  }, [fabricated, expenses]);
+  }, [filteredFabricated, filteredExpenses]);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -76,6 +84,17 @@ const Dashboard = () => {
           </button>
         </div>
 
+        {/* Period filter */}
+        <div className="animate-fade-in-up flex items-center justify-between" style={{ animationDelay: "40ms" }}>
+          <PeriodFilter value={period} onChange={setPeriod} />
+          <button
+            onClick={() => setShowCharts(!showCharts)}
+            className={`p-1.5 rounded-lg transition-colors ${showCharts ? "bg-accent/10 text-accent" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <BarChart3 className="h-4 w-4" />
+          </button>
+        </div>
+
         {/* Financial summary */}
         <div className="grid grid-cols-3 gap-2.5 animate-fade-in-up" style={{ animationDelay: "60ms" }}>
           <SummaryCard icon={TrendingUp} label="Ingresos" value={formatCLP(totals.totalRevenue)} color="text-accent" />
@@ -83,9 +102,44 @@ const Dashboard = () => {
           <SummaryCard icon={DollarSign} label="Ganancia" value={formatCLP(totals.profit)} color={totals.profit >= 0 ? "text-accent" : "text-destructive"} />
         </div>
 
+        {/* ROI indicator */}
+        {(filteredFabricated.length > 0 || filteredExpenses.length > 0) && (
+          <div className="flex gap-2.5 animate-fade-in-up" style={{ animationDelay: "80ms" }}>
+            <div className="flex-1 rounded-xl bg-card border p-3 flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                <Percent className="h-4 w-4 text-accent" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">ROI</p>
+                <p className={`text-sm font-bold font-mono ${totals.roi >= 0 ? "text-accent" : "text-destructive"}`}>
+                  {totals.roi.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 rounded-xl bg-card border p-3 flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                <Package className="h-4 w-4 text-accent" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Ventas</p>
+                <p className="text-sm font-bold font-mono">{totals.paidCount} <span className="text-muted-foreground text-[10px] font-normal">+ {totals.freeCount} gratis</span></p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Charts section */}
+        {showCharts && (fabricated.length > 0 || expenses.length > 0) && (
+          <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+            <EvolutionChart fabricated={filteredFabricated} expenses={filteredExpenses} />
+            <ProfitLineChart fabricated={filteredFabricated} expenses={filteredExpenses} />
+            <ExpenseBreakdownChart expenses={filteredExpenses} />
+          </div>
+        )}
+
         {/* Investment goal */}
         {goal > 0 && (
-          <div className="rounded-xl bg-card border p-4 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+          <div className="rounded-xl bg-card border p-4 animate-fade-in-up" style={{ animationDelay: "120ms" }}>
             <div className="flex items-center gap-2 mb-2">
               <Target className="h-4 w-4 text-accent" />
               <span className="text-xs font-semibold">Meta de inversión</span>
@@ -114,7 +168,7 @@ const Dashboard = () => {
             <QuickAction icon={Calculator} label="Calcular proyecto" onClick={() => navigate("/3d")} />
             <QuickAction icon={Plus} label="Registrar venta" onClick={() => navigate("/finanzas?accion=venta")} />
             <QuickAction icon={ShoppingCart} label="Registrar gasto" onClick={() => navigate("/finanzas?accion=gasto")} />
-            <QuickAction icon={Camera} label="Fotografía" onClick={() => navigate("/foto")} badge="Pronto" />
+            <QuickAction icon={Camera} label="Fotografía" onClick={() => navigate("/foto")} />
           </div>
         </div>
 
@@ -150,8 +204,6 @@ const Dashboard = () => {
           <div className="flex gap-3 text-[11px] text-muted-foreground flex-wrap animate-fade-in-up" style={{ animationDelay: "200ms" }}>
             <span className="flex items-center gap-1"><Package className="h-3 w-3" /> {projects.length} proyectos</span>
             <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {clients.length} clientes</span>
-            <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> {totals.paidCount} ventas</span>
-            <span className="flex items-center gap-1"><Gift className="h-3 w-3" /> {totals.freeCount} muestras</span>
             {totals.totalExpenses > 0 && (
               <span className="flex items-center gap-1"><Receipt className="h-3 w-3" /> {formatCLP(totals.totalExpenses)} gastos</span>
             )}
@@ -235,14 +287,13 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => navigate("/foto")}
-              className="rounded-xl bg-card border p-4 text-left hover:bg-secondary/30 transition-colors active:scale-[0.98] group relative overflow-hidden"
+              className="rounded-xl bg-card border p-4 text-left hover:bg-secondary/30 transition-colors active:scale-[0.98] group"
             >
-              <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center mb-2.5">
-                <Camera className="h-4.5 w-4.5 text-muted-foreground" />
+              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center mb-2.5 group-hover:bg-accent/20 transition-colors">
+                <Camera className="h-4.5 w-4.5 text-accent" />
               </div>
-              <p className="text-sm font-semibold text-muted-foreground">Fotografía</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">Próximamente</p>
-              <span className="absolute top-2 right-2 text-[8px] font-bold uppercase tracking-wider bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Soon</span>
+              <p className="text-sm font-semibold">Fotografía</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Cotizaciones y paquetes</p>
             </button>
           </div>
         </div>

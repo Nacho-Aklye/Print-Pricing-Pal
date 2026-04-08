@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart, Filter } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Plus, Trash2, DollarSign, Package, Gift, ChevronDown, ChevronRight, Receipt, ShoppingCart, Filter, BarChart3 } from "lucide-react";
 import { useProjects, useMaterials, useSettings, useFabricatedProjects, useInvestmentGoal, useExpenses, useClients } from "@/lib/hooks";
 import type { FabricatedProject, Expense, ExpenseSource, ExpenseCategory } from "@/lib/types";
 import { formatCLP, EXPENSE_CATEGORIES_BY_SOURCE, EXPENSE_SOURCE_LABELS, ALL_EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/types";
+import { PeriodFilter, filterByPeriod, type Period } from "@/components/PeriodFilter";
+import { EvolutionChart, ExpenseBreakdownChart } from "@/components/FinanceCharts";
 
 type DetailView = { type: "sale"; item: FabricatedProject } | { type: "expense"; item: Expense } | null;
 
@@ -39,8 +41,13 @@ const Finances = () => {
   const [expNotes, setExpNotes] = useState("");
   const [expPayment, setExpPayment] = useState<Expense["paymentMethod"]>("efectivo");
 
-  // Filter
+  // Period + filter
+  const [period, setPeriod] = useState<Period>("month");
   const [filterSource, setFilterSource] = useState<ExpenseSource | "all">("all");
+  const [showCharts, setShowCharts] = useState(false);
+
+  const filteredFabricated = useMemo(() => filterByPeriod(fabricated, period), [fabricated, period]);
+  const filteredExpenses = useMemo(() => filterByPeriod(expenses, period), [expenses, period]);
 
   // Update category when source changes
   useEffect(() => {
@@ -134,27 +141,27 @@ const Finances = () => {
     let totalCost = 0;
     let paidCount = 0;
     let freeCount = 0;
-    for (const f of fabricated) {
+    for (const f of filteredFabricated) {
       totalRevenue += f.salePrice;
       totalCost += f.cost;
       if (f.isFree) freeCount++;
       else paidCount++;
     }
-    const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+    const totalExpenses = filteredExpenses.reduce((s, e) => s + e.amount, 0);
     return { totalRevenue, totalCost: totalCost + totalExpenses, totalProductionCost: totalCost, totalExpenses, profit: totalRevenue - totalCost - totalExpenses, paidCount, freeCount };
-  }, [fabricated, expenses]);
+  }, [filteredFabricated, filteredExpenses]);
 
   const goalProgress = goal > 0 ? Math.min((totals.profit / goal) * 100, 100) : 0;
 
   // Combined timeline with filter
   const timeline = useMemo(() => {
-    const sales = fabricated.map((f) => ({ ...f, _type: "sale" as const }));
-    const filteredExpenses = filterSource === "all"
-      ? expenses
-      : expenses.filter(e => e.source === filterSource);
-    const exps = filteredExpenses.map((e) => ({ ...e, _type: "expense" as const }));
+    const sales = filteredFabricated.map((f) => ({ ...f, _type: "sale" as const }));
+    const srcFiltered = filterSource === "all"
+      ? filteredExpenses
+      : filteredExpenses.filter(e => e.source === filterSource);
+    const exps = srcFiltered.map((e) => ({ ...e, _type: "expense" as const }));
     return [...sales, ...exps].sort((a, b) => b.date - a.date);
-  }, [fabricated, expenses, filterSource]);
+  }, [filteredFabricated, filteredExpenses, filterSource]);
 
   const selectedBreakdown = selectedProjectId ? calcCostBreakdown(selectedProjectId) : null;
 
@@ -162,8 +169,18 @@ const Finances = () => {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6 space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Finanzas</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Finanzas</h1>
+        <button
+          onClick={() => setShowCharts(!showCharts)}
+          className={`p-1.5 rounded-lg transition-colors ${showCharts ? "bg-accent/10 text-accent" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <BarChart3 className="h-4 w-4" />
+        </button>
+      </div>
 
+      {/* Period filter */}
+      <PeriodFilter value={period} onChange={setPeriod} />
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-card border p-3 space-y-1">
@@ -194,6 +211,14 @@ const Finances = () => {
           <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> {totals.paidCount} pagados</span>
           <span className="flex items-center gap-1"><Gift className="h-3 w-3" /> {totals.freeCount} gratis</span>
           {totals.totalExpenses > 0 && <span className="flex items-center gap-1"><Receipt className="h-3 w-3" /> {formatCLP(totals.totalExpenses)} en gastos</span>}
+        </div>
+      )}
+
+      {/* Charts */}
+      {showCharts && (filteredFabricated.length > 0 || filteredExpenses.length > 0) && (
+        <div className="space-y-3">
+          <EvolutionChart fabricated={filteredFabricated} expenses={filteredExpenses} />
+          <ExpenseBreakdownChart expenses={filteredExpenses} />
         </div>
       )}
 
