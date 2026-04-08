@@ -41,8 +41,13 @@ const Finances = () => {
   const [expNotes, setExpNotes] = useState("");
   const [expPayment, setExpPayment] = useState<Expense["paymentMethod"]>("efectivo");
 
-  // Filter
+  // Period + filter
+  const [period, setPeriod] = useState<Period>("month");
   const [filterSource, setFilterSource] = useState<ExpenseSource | "all">("all");
+  const [showCharts, setShowCharts] = useState(false);
+
+  const filteredFabricated = useMemo(() => filterByPeriod(fabricated, period), [fabricated, period]);
+  const filteredExpenses = useMemo(() => filterByPeriod(expenses, period), [expenses, period]);
 
   // Update category when source changes
   useEffect(() => {
