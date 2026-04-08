@@ -214,6 +214,14 @@ const Finances = () => {
         </div>
       )}
 
+      {/* Charts */}
+      {showCharts && (filteredFabricated.length > 0 || filteredExpenses.length > 0) && (
+        <div className="space-y-3">
+          <EvolutionChart fabricated={filteredFabricated} expenses={filteredExpenses} />
+          <ExpenseBreakdownChart expenses={filteredExpenses} />
+        </div>
+      )}
+
       {/* Investment Goal */}
       <div className="rounded-xl bg-card border p-4 space-y-3">
         <div className="flex items-center justify-between">
