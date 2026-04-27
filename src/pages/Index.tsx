@@ -25,6 +25,7 @@ const Index = () => {
   const [printMinutes, setPrintMinutes] = useState("");
   const [modelCost, setModelCost] = useState("");
   const [modelSource, setModelSource] = useState("");
+  const [unitsProduced, setUnitsProduced] = useState("1");
   const [showMarginTips, setShowMarginTips] = useState(false);
   const [showSave, setShowSave] = useState(false);
   const [saveName, setSaveName] = useState("");
