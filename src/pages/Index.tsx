@@ -43,6 +43,7 @@ const Index = () => {
     setPrintMinutes(project.printMinutes ? String(project.printMinutes) : "");
     setModelCost(project.modelCost ? String(project.modelCost) : "");
     setModelSource(project.modelSource || "");
+    setUnitsProduced(project.unitsProduced ? String(project.unitsProduced) : "1");
     setSaveName(project.name);
     setSaveNotes(project.notes || "");
     setLoadedProjectName(project.name);
