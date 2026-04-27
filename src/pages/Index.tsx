@@ -182,6 +182,27 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Units produced */}
+        <section className="mb-6 animate-fade-in-up" style={{ animationDelay: "170ms" }}>
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">Producción</label>
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm text-muted-foreground min-w-[120px]">Unidades por impresión</span>
+              <input
+                type="number"
+                min="1"
+                placeholder="1"
+                value={unitsProduced}
+                onChange={(e) => setUnitsProduced(e.target.value)}
+                className="w-full bg-transparent font-mono text-right text-lg focus:outline-none"
+              />
+              <span className="text-xs text-muted-foreground shrink-0">u</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground/70 mt-2">Ej: si una impresión rinde 4 piezas, ingresa 4 para calcular el valor unitario.</p>
+          </div>
+        </section>
+
         {/* Cost parameters */}
         <section className="mb-6 animate-fade-in-up" style={{ animationDelay: "180ms" }}>
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">Parámetros de costo</label>
