@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import { Trash2, ChevronDown, ChevronRight, StickyNote, ShoppingBag, Clock, Layers, Calculator, ImagePlus, X } from "lucide-react";
+import { Trash2, ChevronDown, ChevronRight, StickyNote, ShoppingBag, Clock, Layers, Calculator, ImagePlus, X, Pencil, Check, Package } from "lucide-react";
 import { useProjects, useMaterials } from "@/lib/hooks";
-import type { Project } from "@/lib/types";
+import type { Project, MaterialEntry } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 import { MaterialColorDots } from "@/components/MaterialColorDots";
+import { MaterialSelector } from "@/components/MaterialSelector";
 import { Print3DNav } from "@/components/Print3DNav";
 import { useNavigate } from "react-router-dom";
 
