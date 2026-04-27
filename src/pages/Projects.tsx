@@ -49,7 +49,32 @@ const Projects = () => {
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEntries, setEditEntries] = useState<MaterialEntry[]>([]);
+  const [editHours, setEditHours] = useState("");
+  const [editMinutes, setEditMinutes] = useState("");
+  const [editUnits, setEditUnits] = useState("1");
   const navigate = useNavigate();
+
+  const startEdit = (project: Project) => {
+    setEditingId(project.id);
+    setEditEntries(project.materials);
+    setEditHours(String(project.printHours || ""));
+    setEditMinutes(String(project.printMinutes || ""));
+    setEditUnits(String(project.unitsProduced || 1));
+  };
+
+  const saveEdit = (projectId: string) => {
+    updateProject(projectId, {
+      materials: editEntries.filter((e) => e.weightGrams > 0),
+      printHours: parseFloat(editHours) || 0,
+      printMinutes: parseFloat(editMinutes) || 0,
+      unitsProduced: Math.max(1, parseInt(editUnits) || 1),
+    });
+    setEditingId(null);
+  };
+
+  const cancelEdit = () => setEditingId(null);
 
   const getMaterial = (id: string) => materials.find((m) => m.id === id);
   const getMaterialName = (id: string) => {
