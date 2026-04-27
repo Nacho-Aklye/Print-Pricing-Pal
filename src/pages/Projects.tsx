@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import { Trash2, ChevronDown, ChevronRight, StickyNote, ShoppingBag, Clock, Layers, Calculator, ImagePlus, X } from "lucide-react";
+import { Trash2, ChevronDown, ChevronRight, StickyNote, ShoppingBag, Clock, Layers, Calculator, ImagePlus, X, Pencil, Check, Package } from "lucide-react";
 import { useProjects, useMaterials } from "@/lib/hooks";
-import type { Project } from "@/lib/types";
+import type { Project, MaterialEntry } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
 import { MaterialColorDots } from "@/components/MaterialColorDots";
+import { MaterialSelector } from "@/components/MaterialSelector";
 import { Print3DNav } from "@/components/Print3DNav";
 import { useNavigate } from "react-router-dom";
 
@@ -48,7 +49,32 @@ const Projects = () => {
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEntries, setEditEntries] = useState<MaterialEntry[]>([]);
+  const [editHours, setEditHours] = useState("");
+  const [editMinutes, setEditMinutes] = useState("");
+  const [editUnits, setEditUnits] = useState("1");
   const navigate = useNavigate();
+
+  const startEdit = (project: Project) => {
+    setEditingId(project.id);
+    setEditEntries(project.materials);
+    setEditHours(String(project.printHours || ""));
+    setEditMinutes(String(project.printMinutes || ""));
+    setEditUnits(String(project.unitsProduced || 1));
+  };
+
+  const saveEdit = (projectId: string) => {
+    updateProject(projectId, {
+      materials: editEntries.filter((e) => e.weightGrams > 0),
+      printHours: parseFloat(editHours) || 0,
+      printMinutes: parseFloat(editMinutes) || 0,
+      unitsProduced: Math.max(1, parseInt(editUnits) || 1),
+    });
+    setEditingId(null);
+  };
+
+  const cancelEdit = () => setEditingId(null);
 
   const getMaterial = (id: string) => materials.find((m) => m.id === id);
   const getMaterialName = (id: string) => {
@@ -183,27 +209,56 @@ const Projects = () => {
                       {/* Materials */}
                       <div>
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">Materiales</span>
-                        <div className="space-y-1.5">
-                          {project.materials.map((entry, j) => {
-                            const mat = getMaterial(entry.materialId);
-                            const cost = mat ? (entry.weightGrams / 1000) * mat.costPerKg : 0;
-                            return (
-                              <div key={j} className="flex items-center gap-2 text-sm">
-                                {mat && <MaterialColorDots colors={mat.colors?.length ? mat.colors : ["#888"]} size="xs" />}
-                                <span className="flex-1 min-w-0 truncate">{getMaterialName(entry.materialId)}</span>
-                                <span className="font-mono text-xs text-muted-foreground">{entry.weightGrams}g</span>
-                                <span className="font-mono text-xs text-accent">{formatCLP(cost)}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
+                        {editingId === project.id ? (
+                          <MaterialSelector entries={editEntries} materials={materials} onChange={setEditEntries} />
+                        ) : (
+                          <div className="space-y-1.5">
+                            {project.materials.map((entry, j) => {
+                              const mat = getMaterial(entry.materialId);
+                              const cost = mat ? (entry.weightGrams / 1000) * mat.costPerKg : 0;
+                              return (
+                                <div key={j} className="flex items-center gap-2 text-sm">
+                                  {mat && <MaterialColorDots colors={mat.colors?.length ? mat.colors : ["#888"]} size="xs" />}
+                                  <span className="flex-1 min-w-0 truncate">{getMaterialName(entry.materialId)}</span>
+                                  <span className="font-mono text-xs text-muted-foreground">{entry.weightGrams}g</span>
+                                  <span className="font-mono text-xs text-accent">{formatCLP(cost)}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
                       {/* Print time */}
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span>Tiempo: {project.printHours}h {project.printMinutes}m</span>
-                      </div>
+                      {editingId === project.id ? (
+                        <div className="rounded-lg border bg-card p-3">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground flex-1">Tiempo</span>
+                            <input type="number" min="0" placeholder="0" value={editHours} onChange={(e) => setEditHours(e.target.value)} className="w-14 rounded-md border bg-background px-2 py-1 text-sm font-mono text-right focus:outline-none focus:ring-1 focus:ring-accent" />
+                            <span className="text-[10px] text-muted-foreground">h</span>
+                            <input type="number" min="0" max="59" placeholder="0" value={editMinutes} onChange={(e) => setEditMinutes(e.target.value)} className="w-14 rounded-md border bg-background px-2 py-1 text-sm font-mono text-right focus:outline-none focus:ring-1 focus:ring-accent" />
+                            <span className="text-[10px] text-muted-foreground">m</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground flex-1">Unidades por impresión</span>
+                            <input type="number" min="1" value={editUnits} onChange={(e) => setEditUnits(e.target.value)} className="w-16 rounded-md border bg-background px-2 py-1 text-sm font-mono text-right focus:outline-none focus:ring-1 focus:ring-accent" />
+                            <span className="text-[10px] text-muted-foreground">u</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>Tiempo: {project.printHours}h {project.printMinutes}m</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Package className="h-3.5 w-3.5" />
+                            <span>Unidades por impresión: {project.unitsProduced || 1}</span>
+                          </div>
+                        </>
+                      )}
 
                       {/* Model cost */}
                       {(project.modelCost > 0 || project.modelSource) && (
@@ -225,19 +280,44 @@ const Projects = () => {
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center justify-between pt-1 border-t">
-                        <button
-                          onClick={() => loadInCalculator(project)}
-                          className="flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent/80 transition-colors active:scale-[0.97]"
-                        >
-                          <Calculator className="h-3.5 w-3.5" /> Cargar en calculadora
-                        </button>
-                        <button
-                          onClick={() => deleteProject(project.id)}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors active:scale-[0.97]"
-                        >
-                          <Trash2 className="h-3 w-3" /> Eliminar
-                        </button>
+                      <div className="flex items-center justify-between pt-1 border-t flex-wrap gap-2">
+                        {editingId === project.id ? (
+                          <>
+                            <button
+                              onClick={() => saveEdit(project.id)}
+                              className="flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent/80 transition-colors active:scale-[0.97]"
+                            >
+                              <Check className="h-3.5 w-3.5" /> Guardar cambios
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors active:scale-[0.97]"
+                            >
+                              <X className="h-3 w-3" /> Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => loadInCalculator(project)}
+                              className="flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent/80 transition-colors active:scale-[0.97]"
+                            >
+                              <Calculator className="h-3.5 w-3.5" /> Cargar en calculadora
+                            </button>
+                            <button
+                              onClick={() => startEdit(project)}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-accent transition-colors active:scale-[0.97]"
+                            >
+                              <Pencil className="h-3 w-3" /> Editar
+                            </button>
+                            <button
+                              onClick={() => deleteProject(project.id)}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors active:scale-[0.97]"
+                            >
+                              <Trash2 className="h-3 w-3" /> Eliminar
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { Zap, Clock, Calculator, TrendingUp, Info, ShoppingBag, Save, Printer } from "lucide-react";
+import { Zap, Clock, Calculator, TrendingUp, Info, ShoppingBag, Save, Printer, Package } from "lucide-react";
 import { useMaterials, useProjects, useSettings } from "@/lib/hooks";
 import type { MaterialEntry, CostBreakdown } from "@/lib/types";
 import { formatCLP } from "@/lib/types";
@@ -25,6 +25,7 @@ const Index = () => {
   const [printMinutes, setPrintMinutes] = useState("");
   const [modelCost, setModelCost] = useState("");
   const [modelSource, setModelSource] = useState("");
+  const [unitsProduced, setUnitsProduced] = useState("1");
   const [showMarginTips, setShowMarginTips] = useState(false);
   const [showSave, setShowSave] = useState(false);
   const [saveName, setSaveName] = useState("");
@@ -42,6 +43,7 @@ const Index = () => {
     setPrintMinutes(project.printMinutes ? String(project.printMinutes) : "");
     setModelCost(project.modelCost ? String(project.modelCost) : "");
     setModelSource(project.modelSource || "");
+    setUnitsProduced(project.unitsProduced ? String(project.unitsProduced) : "1");
     setSaveName(project.name);
     setSaveNotes(project.notes || "");
     setLoadedProjectName(project.name);
@@ -81,6 +83,7 @@ const Index = () => {
       modelSource,
       notes: saveNotes,
       photos: [],
+      unitsProduced: Math.max(1, parseInt(unitsProduced) || 1),
     });
     setSaveName("");
     setSaveNotes("");
@@ -179,6 +182,27 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Units produced */}
+        <section className="mb-6 animate-fade-in-up" style={{ animationDelay: "170ms" }}>
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">Producción</label>
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm text-muted-foreground min-w-[120px]">Unidades por impresión</span>
+              <input
+                type="number"
+                min="1"
+                placeholder="1"
+                value={unitsProduced}
+                onChange={(e) => setUnitsProduced(e.target.value)}
+                className="w-full bg-transparent font-mono text-right text-lg focus:outline-none"
+              />
+              <span className="text-xs text-muted-foreground shrink-0">u</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground/70 mt-2">Ej: si una impresión rinde 4 piezas, ingresa 4 para calcular el valor unitario.</p>
+          </div>
+        </section>
+
         {/* Cost parameters */}
         <section className="mb-6 animate-fade-in-up" style={{ animationDelay: "180ms" }}>
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">Parámetros de costo</label>
@@ -255,6 +279,16 @@ const Index = () => {
                   <span className="font-bold text-base">Precio final</span>
                   <span className="font-bold text-xl font-mono text-accent">{formatCLP(costs.total)}</span>
                 </div>
+                {(() => {
+                  const units = Math.max(1, parseInt(unitsProduced) || 1);
+                  if (units <= 1) return null;
+                  return (
+                    <div className="flex items-center justify-between pt-1 mt-1 border-t border-dashed">
+                      <span className="text-xs text-muted-foreground">Valor unitario ({units} u)</span>
+                      <span className="font-mono text-sm text-accent">{formatCLP(costs.total / units)}</span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </section>
