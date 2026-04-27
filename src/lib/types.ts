@@ -25,6 +25,7 @@ export interface Project {
   modelCost: number; // cost if model was purchased
   modelSource: string; // where the model came from
   photos: string[]; // base64 data URLs
+  unitsProduced: number; // how many units this project produces per print (default 1)
   createdAt: number;
 }
 
