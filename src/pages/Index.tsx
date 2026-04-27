@@ -279,6 +279,16 @@ const Index = () => {
                   <span className="font-bold text-base">Precio final</span>
                   <span className="font-bold text-xl font-mono text-accent">{formatCLP(costs.total)}</span>
                 </div>
+                {(() => {
+                  const units = Math.max(1, parseInt(unitsProduced) || 1);
+                  if (units <= 1) return null;
+                  return (
+                    <div className="flex items-center justify-between pt-1 mt-1 border-t border-dashed">
+                      <span className="text-xs text-muted-foreground">Valor unitario ({units} u)</span>
+                      <span className="font-mono text-sm text-accent">{formatCLP(costs.total / units)}</span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </section>
