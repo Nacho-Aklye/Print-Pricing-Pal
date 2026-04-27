@@ -83,6 +83,7 @@ const Index = () => {
       modelSource,
       notes: saveNotes,
       photos: [],
+      unitsProduced: Math.max(1, parseInt(unitsProduced) || 1),
     });
     setSaveName("");
     setSaveNotes("");
