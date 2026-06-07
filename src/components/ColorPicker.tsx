@@ -1,4 +1,4 @@
-import { Plus, X, Star, StarOff } from "lucide-react";
+import { Plus, X, Star, Trash2, Check, RotateCcw } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useFavoriteColors } from "@/lib/hooks";
@@ -23,14 +23,16 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [pickerPos, setPickerPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [customHex, setCustomHex] = useState("");
+  // The color the swatch had when the picker was opened — used to revert on Cancel.
+  const [originalColor, setOriginalColor] = useState<string>("");
 
   const updatePosition = useCallback(() => {
     if (showPicker === null) return;
     const btn = buttonRefs.current[showPicker];
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
-    const pickerWidth = 260;
-    const pickerHeight = 340;
+    const pickerWidth = 280;
+    const pickerHeight = 420;
     let left = rect.left;
     let top = rect.bottom + 6;
     if (left + pickerWidth > window.innerWidth - 8) {
@@ -49,6 +51,7 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
     if (showPicker !== null) {
       setCustomHex(colors[showPicker] || "");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPicker, updatePosition]);
 
   useEffect(() => {
@@ -61,13 +64,24 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
     };
   }, [showPicker, updatePosition]);
 
+  const openPicker = (index: number) => {
+    if (showPicker === index) {
+      setShowPicker(null);
+      return;
+    }
+    setOriginalColor(colors[index]);
+    setShowPicker(index);
+  };
+
   const addColor = () => {
     if (colors.length >= max) return;
     const unused = PRESET_COLORS.find((c) => !colors.includes(c)) || "#888888";
     onChange([...colors, unused]);
   };
 
-  const updateColor = (index: number, color: string) => {
+  // Live preview — applies the color immediately so it's visible on the swatch,
+  // but the picker stays open so the user can keep adjusting before confirming.
+  const previewColor = (index: number, color: string) => {
     onChange(colors.map((c, i) => (i === index ? color : c)));
     setCustomHex(color);
   };
@@ -75,6 +89,12 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
   const removeColor = (index: number) => {
     if (colors.length <= 1) return;
     onChange(colors.filter((_, i) => i !== index));
+    setShowPicker(null);
+  };
+
+  // Revert to the color the swatch had when the picker opened, then close.
+  const cancelEdit = (index: number) => {
+    previewColor(index, originalColor);
     setShowPicker(null);
   };
 
@@ -91,21 +111,33 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
     colors.length === 3 ? "Tricolor" :
     `Arcoíris (${colors.length})`;
 
+  const hexValid = (h: string) => /^#[0-9a-fA-F]{6}$/.test(h);
+
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 flex-wrap">
           {colors.map((color, i) => (
-            <button
-              key={i}
-              ref={(el) => { buttonRefs.current[i] = el; }}
-              onClick={() => setShowPicker(showPicker === i ? null : i)}
-              className={`h-7 w-7 rounded-full border-2 shadow-sm transition-all hover:scale-110 active:scale-95 ${
-                showPicker === i ? "border-accent ring-2 ring-accent/30 scale-110" : "border-border"
-              }`}
-              style={{ backgroundColor: color }}
-              title={`Color ${i + 1}`}
-            />
+            <div key={i} className="relative group">
+              <button
+                ref={(el) => { buttonRefs.current[i] = el; }}
+                onClick={() => openPicker(i)}
+                className={`h-7 w-7 rounded-full border-2 shadow-sm transition-all hover:scale-110 active:scale-95 ${
+                  showPicker === i ? "border-accent ring-2 ring-accent/30 scale-110" : "border-border"
+                }`}
+                style={{ backgroundColor: color }}
+                title={`Color ${i + 1}`}
+              />
+              {colors.length > 1 && showPicker !== i && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); removeColor(i); }}
+                  className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
+                  title="Eliminar este color"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              )}
+            </div>
           ))}
           {colors.length < max && (
             <button
@@ -122,33 +154,42 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
 
       {showPicker !== null && createPortal(
         <>
-          <div className="fixed inset-0 z-[200]" onClick={() => setShowPicker(null)} />
+          <div className="fixed inset-0 z-[200]" onClick={() => cancelEdit(showPicker)} />
           <div
             ref={pickerRef}
             className="fixed z-[201] rounded-xl border bg-card p-3 shadow-2xl animate-fade-in-up"
-            style={{ top: pickerPos.top, left: pickerPos.left, width: 260 }}
+            style={{ top: pickerPos.top, left: pickerPos.left, width: 280 }}
           >
-            {/* Selected color preview */}
-            <div className="flex items-center gap-2 mb-3">
-              <div
-                className="h-10 w-10 rounded-lg border-2 border-border shadow-inner"
-                style={{ backgroundColor: colors[showPicker] }}
-              />
+            {/* Large live preview */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="relative">
+                <div
+                  className="h-14 w-14 rounded-xl border-2 border-border shadow-inner"
+                  style={{ backgroundColor: colors[showPicker] }}
+                />
+                {originalColor !== colors[showPicker] && (
+                  <div
+                    className="absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-2 border-card shadow"
+                    style={{ backgroundColor: originalColor }}
+                    title="Color original"
+                  />
+                )}
+              </div>
               <div className="flex-1">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Color seleccionado</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Vista previa</div>
                 <div className="flex items-center gap-1.5">
                   <input
                     type="text"
                     value={customHex}
                     onChange={(e) => {
                       setCustomHex(e.target.value);
-                      if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
-                        updateColor(showPicker, e.target.value);
+                      if (hexValid(e.target.value)) {
+                        previewColor(showPicker, e.target.value);
                       }
                     }}
                     onBlur={() => {
-                      if (/^#[0-9a-fA-F]{6}$/.test(customHex)) {
-                        updateColor(showPicker, customHex);
+                      if (hexValid(customHex)) {
+                        previewColor(showPicker, customHex);
                       } else {
                         setCustomHex(colors[showPicker]);
                       }
@@ -167,15 +208,26 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
               </div>
             </div>
 
+            {/* Native fine color picker for exact selection */}
+            <div className="mb-3">
+              <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Selector preciso</div>
+              <input
+                type="color"
+                value={hexValid(colors[showPicker]) ? colors[showPicker] : "#888888"}
+                onChange={(e) => previewColor(showPicker, e.target.value)}
+                className="h-9 w-full cursor-pointer rounded-lg border bg-background p-1"
+              />
+            </div>
+
             {/* Preset grid */}
             <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Colores</div>
             <div className="grid grid-cols-10 gap-1 mb-2">
               {PRESET_COLORS.map((preset) => (
                 <button
                   key={preset}
-                  onClick={() => { updateColor(showPicker, preset); setShowPicker(null); }}
+                  onClick={() => previewColor(showPicker, preset)}
                   className={`h-5.5 w-5.5 aspect-square rounded-full border transition-all hover:scale-125 active:scale-95 ${
-                    colors[showPicker] === preset ? "border-accent ring-2 ring-accent/40 scale-110" : "border-border/60"
+                    colors[showPicker]?.toLowerCase() === preset ? "border-accent ring-2 ring-accent/40 scale-110" : "border-border/60"
                   }`}
                   style={{ backgroundColor: preset }}
                 />
@@ -190,9 +242,9 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
                   {favorites.map((fav) => (
                     <button
                       key={fav}
-                      onClick={() => { updateColor(showPicker, fav); setShowPicker(null); }}
+                      onClick={() => previewColor(showPicker, fav)}
                       className={`h-5.5 w-5.5 aspect-square rounded-full border transition-all hover:scale-125 active:scale-95 ${
-                        colors[showPicker] === fav ? "border-accent ring-2 ring-accent/40 scale-110" : "border-border/60"
+                        colors[showPicker]?.toLowerCase() === fav ? "border-accent ring-2 ring-accent/40 scale-110" : "border-border/60"
                       }`}
                       style={{ backgroundColor: fav }}
                     />
@@ -203,7 +255,7 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
 
             {/* Hue gradient slider */}
             <div className="mb-3">
-              <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Tono personalizado</div>
+              <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Tono rápido</div>
               <div className="relative h-6 rounded-full overflow-hidden cursor-pointer"
                 style={{ background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)" }}
                 onClick={(e) => {
@@ -211,29 +263,36 @@ export const ColorPicker = ({ colors, onChange, max = 15 }: Props) => {
                   const x = (e.clientX - rect.left) / rect.width;
                   const hue = Math.round(x * 360);
                   const hex = hslToHex(hue, 80, 50);
-                  updateColor(showPicker, hex);
-                  setShowPicker(null);
+                  previewColor(showPicker, hex);
                 }}
               >
                 <div className="absolute inset-0 rounded-full border border-border/30" />
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-1 border-t">
-              {colors.length > 1 ? (
-                <button
-                  onClick={() => removeColor(showPicker)}
-                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors py-1"
-                >
-                  <X className="h-3 w-3" /> Eliminar color
-                </button>
-              ) : <span />}
+            {/* Delete color */}
+            {colors.length > 1 && (
+              <button
+                onClick={() => removeColor(showPicker)}
+                className="flex items-center gap-1.5 w-full justify-center text-[11px] text-destructive hover:bg-destructive/10 transition-colors py-1.5 rounded-lg border border-destructive/30 mb-2"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Eliminar color del filamento
+              </button>
+            )}
+
+            {/* Confirm / Cancel actions */}
+            <div className="flex items-center gap-2 pt-1 border-t">
+              <button
+                onClick={() => cancelEdit(showPicker)}
+                className="flex items-center justify-center gap-1.5 flex-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors py-1.5 rounded-lg border"
+              >
+                <RotateCcw className="h-3 w-3" /> Cancelar
+              </button>
               <button
                 onClick={() => setShowPicker(null)}
-                className="text-[11px] font-medium text-accent hover:text-accent/80 transition-colors py-1"
+                className="flex items-center justify-center gap-1.5 flex-1 text-[11px] font-semibold text-accent-foreground bg-accent hover:bg-accent/90 transition-colors py-1.5 rounded-lg"
               >
-                Listo
+                <Check className="h-3.5 w-3.5" /> Aceptar
               </button>
             </div>
           </div>
