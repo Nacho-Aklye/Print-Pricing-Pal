@@ -25,7 +25,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="pb-20">
+          <div className="pl-16 min-h-screen">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/3d" element={<Index />} />
@@ -33,6 +33,7 @@ const App = () => (
               <Route path="/3d/proyectos" element={<Projects />} />
               <Route path="/finanzas" element={<Finances />} />
               <Route path="/foto" element={<Photography />} />
+              <Route path="/ia" element={<AIDesign />} />
               <Route path="/clientes" element={<Clients />} />
               <Route path="/ajustes" element={<Settings />} />
               {/* Legacy redirects */}
